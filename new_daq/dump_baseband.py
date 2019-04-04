@@ -13,8 +13,10 @@ import numpy
 import subprocess
 
 def write_header(file_object, chans, spec_per_packet, bytes_per_packet, bits, have_trimble):
-    file_header=numpy.asarray([bytes_per_packet, len(chans), spec_per_packet, bits, have_trimble], dtype='>Q')
+    header_bytes=8*10+8*len(chans)
+    file_header=numpy.asarray([header_bytes, bytes_per_packet, len(chans), spec_per_packet, bits, have_trimble], dtype='>Q')
     file_header.tofile(file_object)
+    numpy.asarray(chans, dtype=">Q").tofile(file_object)
     if have_trimble:
         gps_time=trimble_utils.get_gps_time_trimble()
         if gps_time is None:

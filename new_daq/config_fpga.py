@@ -79,10 +79,9 @@ if __name__=="__main__":
         albatros_snap=albatrosdigitizer.AlbatrosDigitizer(snap_ip, snap_port, logger=logger)
     	albatros_snap.initialise(fpg_file, ref_clock, fftshift, acclen, bits,
                                  spec_per_packet, bytes_per_spectrum, dest_ip, dest_port, dest_mac)
+        adc_stats=albatros_snap.get_adc_stats()
+        logger.info("ADC bits used: (adc0, %.2f) (adc3, %.2f)"%(adc_stats["adc0"]["bits_used"], adc_stats["adc3"]["bits_used"]))
         albatros_snap.set_channel_order(chans, bits)
-        if bits==2:
-            albatros_snap.set_two_bit_threshold(281)
-        if bits==4:
-            albatros_snap.set_channel_coeffs(channels_coeffs)
+        albatros_snap.set_channel_coeffs(chans, channels_coeffs, bits)
     finally:
         logger.info("Finished initialising at %s"%datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S"))
