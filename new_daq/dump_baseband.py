@@ -12,8 +12,8 @@ import trimble_utils
 import numpy
 import subprocess
 
-def write_header(file_object, chans, spec_per_packet, bytes_per_packet, have_trimble):
-    file_header=numpy.asarray([bytes_per_packet, len(chans), spec_per_packet, 4, have_trimble], dtype='int')
+def write_header(file_object, chans, spec_per_packet, bytes_per_packet, bits, have_trimble):
+    file_header=numpy.asarray([bytes_per_packet, len(chans), spec_per_packet, bits, have_trimble], dtype='>Q')
     file_header.tofile(file_object)
     if have_trimble:
         gps_time=trimble_utils.get_gps_time_trimble()
@@ -23,7 +23,7 @@ def write_header(file_object, chans, spec_per_packet, bytes_per_packet, have_tri
             gps_time['seconds']=0
         else:
             print 'ps time is now ',gps_time['week'],gps_time['seconds']
-        gps_time=numpy.asarray([gps_time['week'],gps_time['seconds']],dtype='int')
+        gps_time=numpy.asarray([gps_time['week'],gps_time['seconds']],dtype='>Q')
         gps_time.tofile(file_object)
         latlon=trimble_utils.get_latlon_trimble()
         if latlon is None:
@@ -33,14 +33,14 @@ def write_header(file_object, chans, spec_per_packet, bytes_per_packet, have_tri
             latlon['elev']=0
         else:
             print 'lat/lon/elev are ',latlon['lat'],latlon['lon'],latlon['elev']
-        latlon=numpy.asarray([latlon['lat'],latlon['lon'],latlon['elev']],dtype='float')
+        latlon=numpy.asarray([latlon['lat'],latlon['lon'],latlon['elev']],dtype='>q')
         latlon.tofile(file_object)
     else:
         gps_time={"week":0, "seconds":0}
-        gps_time=numpy.asarray([gps_time['week'],gps_time['seconds']],dtype='int')
+        gps_time=numpy.asarray([gps_time['week'],gps_time['seconds']],dtype='>Q')
         gps_time.tofile(file_object)
         latlon={"lat":0, "lon":0, "elev":0}
-        latlon=numpy.asarray([latlon['lat'],latlon['lon'],latlon['elev']],dtype='float')
+        latlon=numpy.asarray([latlon['lat'],latlon['lon'],latlon['elev']],dtype='>q')
         latlon.tofile(file_object)
     return None
 
@@ -139,7 +139,7 @@ if __name__=="__main__":
                 file_time=int(time.time())
                 file_path=write_path+"/"+directory_time+"/"+str(file_time)+".raw"
                 baseband_file=open(file_path, "w")
-                # write_header(baseband_file, chans, spec_per_packet, bytes_per_packet, have_trimble)
+                write_header(baseband_file, chans, spec_per_packet, bytes_per_packet, bits, have_trimble)
                 logger.info("Writing file "+str(i+1)+" of "+str(number_of_files)+" to "+file_path)
                 time_for_many_reads=time.time()
                 num_of_reads=0
