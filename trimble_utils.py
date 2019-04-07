@@ -55,13 +55,20 @@ def get_report_trimble(id=171,baud=9600,port='/dev/ttyUSB0',maxtime=4,maxiter=5)
 
 def set_clock_trimble(id=171,baud=9600,port='/dev/ttyUSB0'):
     report=get_report_trimble(id,baud,port)
+    if report is None:
+        print 'unable to read time from trimble in set_clock_trimble.'
+        return False
     mytime=datetime.datetime(report[11],report[10],report[9],report[8],report[7],report[6])
     to_exec='sudo date -s " %s "' % mytime.ctime()
     os.system(to_exec)
+    return True
     #return mytime
 
 def get_gps_time_trimble(id=171,baud=9600,port='/dev/ttyUSB0'):
     report=get_report_trimble(id,baud,port)
+    if report is None:
+        print 'unable to read trimble in get_gps_time_trimble'
+        return None
     gps_time={}
     gps_time['week']=report[3]
     gps_time['seconds']=report[2]
@@ -69,6 +76,9 @@ def get_gps_time_trimble(id=171,baud=9600,port='/dev/ttyUSB0'):
 
 def get_latlon_trimble(id=172,baud=9600,port='/dev/ttyUSB0'):
     report=get_report_trimble(id,baud,port)
+    if report is None:
+        print 'unable to read trimble in get_latlon_trimble.'
+        return None
     latlon={}
     latlon['lat']=report[17]*180/math.pi
     latlon['lon']=report[18]*180/math.pi
