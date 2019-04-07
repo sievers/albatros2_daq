@@ -6,6 +6,7 @@ import scio
 import argparse
 import albatros_daq_utils
 import os
+import sys
 
 if __name__=="__main__":
     parser=argparse.ArgumentParser()
@@ -28,12 +29,18 @@ if __name__=="__main__":
 
     
     s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.bind(("192.168.2.200", 4321))
+    try:
+        s.bind(("192.168.2.200", 4321))
+    except:
+        print "Unable to bind to port.  Exiting."
+        sys.exit(1)
+        
 
     outpart=albatros_daq_utils.find_emptiest_drive()
     st=os.statvfs(outpart)
     free_bytes=st.f_bavail*st.f_frsize
     nfile_targ=int(args.safety*free_bytes/(1.0e9*args.gbytes))
+    nfile_targ=3
     print "I think I can write ",nfile_targ," files in available space."
     outname=albatros_daq_utils.find_emptiest_drive()+'/jls_noise_test.raw'
     print 'writing data to ',outname
@@ -63,7 +70,11 @@ if __name__=="__main__":
             os.mkdir(mydir)
         fname=mydir+'/'+ct_str+'.raw'
         print 'writing to ',fname
-        f=open(fname,'w')
+        try:
+            f=open(fname,'w')
+        except:
+            print "Unable to write to file ",fname,".  Exiting."
+            sys.exit(2)
         for spec in range(reads_per_file):
         
         
@@ -76,4 +87,4 @@ if __name__=="__main__":
                 i=0
                 t0=t1
         f.close()
-
+    sys.exit(0)
