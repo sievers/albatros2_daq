@@ -105,6 +105,7 @@ if __name__=="__main__":
         if have_trimble:
             gps_time=trimble_utils.get_gps_time_trimble()
             if gps_time is None:
+                gps_time={}
                 gps_time['week']=0
                 gps_time['seconds']=0
             else:
