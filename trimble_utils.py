@@ -4,7 +4,8 @@ import datetime
 import os
 import time
 import math
-
+import stat
+#import subprocess
 
 #from functools import wraps
 #import errno
@@ -31,6 +32,20 @@ class timeout:
 
 
 def get_report_trimble_raw(id=171,baud=9600,port='/dev/ttyUSB0',maxtime=10):
+    #mystr=subprocess.check_output(['ls','-l',port])
+    try:
+        st=os.stat(port)    
+        if ((st.st_mode&stat.S_IROTH)==0)&((st.st_mode&stat.S_IWOTH)==0):
+            print port, ' is not generally readable.'
+            os.system('sudo chmod a+rw '+port)
+            st=os.stat(port)
+            if ((st.st_mode&stat.S_IROTH)&(st.st_mode&stat.S_IWOTH)):
+                print 'was unable to fix permissions on port ',port, '.  Exiting get_report_trimble_raw'
+            return None
+    except:
+        print 'port ',port,' does not exist.  Exiting get_report_trimble_raw'
+        return None
+    
     with timeout(seconds=maxtime):
         serial_conn = serial.Serial(port, baud)    
         gps_conn = tsip.GPS(serial_conn)
