@@ -9,6 +9,23 @@ import trimble_utils
 import os
 import sys
 
+def keep_data_time_of_day(args):
+    keep_data=True
+    hours=(time.time()%86400)/3600
+    tstart=args.start_time
+    tstop=args.stop_time
+    if (tstart>=0)|(tstop>=0):
+        if (tstop>tstart):
+            if (hours<tstart)|(hours>tstop):
+                keep_data=False
+        else:
+            if (hours>tstart)&(hours<tstop):
+                keep_data=False
+    return keep_data
+
+                
+    
+
 if __name__=="__main__":
     parser=argparse.ArgumentParser()
     parser.add_argument("-Q","--freqs",type=str,default="0 20",help="Frequency range to dump baseband.")
@@ -20,8 +37,14 @@ if __name__=="__main__":
     parser.add_argument("-d","--dir",type=str,default='albatros_baseband',help="Set output directory to this.")
     parser.add_argument("-D","--drive",type=str,default='',help="Force output drive to this (otherwise use drive with most empty space)")
     parser.add_argument("-S","--safety",type=float,default=0.95,help="Treat available size as down by this factor to avoid filling drives.")
+    parser.add_argument("-t","--start_time",type=float,default=-1,help="Starting time (in decimal hours) for taking data.");
+    parser.add_argument("-T","--stop_time",type=float,default=-1,help="Stopping time (in decimal hours) for taking data.");
+    
     args=parser.parse_args()
     
+
+    #print 'keep data is ',keep_data_time_of_day(args)
+    #sys.exit(0)
     
     freq=numpy.fromstring(args.freqs,sep=' ')
     print 'freq is ',freq
@@ -93,8 +116,14 @@ if __name__=="__main__":
         print mydir
         if not(os.path.isdir(mydir)):
             os.mkdir(mydir)
+
         fname=mydir+'/'+ct_str+'.raw'
-        print 'writing to ',fname
+        if keep_data_time_of_day(args):
+            print 'writing to ',fname
+        else:
+            print 'skipping file ',fname,' due to time of day cuts.'
+            fname='/dev/null'
+
         try:
             f=open(fname,'w')
         except:
@@ -135,5 +164,6 @@ if __name__=="__main__":
                 print 'data size is',len(data),type(data),t1-t0,time_per_print
                 i=0
                 t0=t1
-        f.close()
+        if not(fname=='/dev/null'):
+            f.close()
     sys.exit(0)
