@@ -5,7 +5,11 @@ import time
 import scio
 import argparse
 import albatros_daq_utils
-import trimble_utils
+try:
+    import trimble_utils
+    imported_trimble=True
+except:
+    imported_trimble=False
 import os
 import sys
 
