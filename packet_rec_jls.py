@@ -112,7 +112,9 @@ if __name__=="__main__":
     if not(os.path.isdir(mydir)):
         os.mkdir(mydir)
     file_header=numpy.asarray([nbyte,len(chan),nspec,header_len,have_trimble],dtype='int')    
-    for fnum in range(nfile_targ):
+    for fnum in range(nfile_targ):  
+        #if you add a timeout, I would add it here.  You can calculate roughly how long
+        #each file should take to write, and if it takes much longer than that, something has gone wrong.
         ct=time.time()
         ct_str=repr(int(ct))    
         ct_root=ct_str[:5]

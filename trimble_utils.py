@@ -46,7 +46,7 @@ def get_report_trimble_raw(id=171,baud=9600,port='/dev/ttyUSB0',maxtime=10):
         print 'port ',port,' does not exist.  Exiting get_report_trimble_raw'
         return None
     
-    with timeout(seconds=maxtime):
+    with timeout(seconds=maxtime):  #This sort of timeout should probably be added to the packet receiving code so it times out in the event of an FPGA hang.
         serial_conn = serial.Serial(port, baud)    
         gps_conn = tsip.GPS(serial_conn)
         command = tsip.Packet(0x21)
