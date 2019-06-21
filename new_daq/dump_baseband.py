@@ -52,7 +52,7 @@ def spin_up_drive(drive_block, partition, mount_point):
 
 if __name__=="__main__":
     parser=argparse.ArgumentParser(description="Script to save baseband")
-    parser.add_argument("-c", "--configfile", type=str, default="albatros2_config.ini", help="Config file with all the parameters")
+    parser.add_argument("-c", "--configfile", type=str, default="config.ini", help="Config file with all the parameters")
     args=parser.parse_args()
 
     config_file=ConfigParser.SafeConfigParser()

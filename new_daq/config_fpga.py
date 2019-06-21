@@ -10,7 +10,7 @@ import numpy
 
 if __name__=="__main__":
     parser=argparse.ArgumentParser(description="Script to initialise SNAP Board")
-    parser.add_argument("-c", "--configfile", type=str, default="albatros2_config.ini", help=".ini file with parameters to configure firmware")
+    parser.add_argument("-c", "--configfile", type=str, default="config.ini", help=".ini file with parameters to configure firmware")
     args=parser.parse_args()
 
     config_file=ConfigParser.SafeConfigParser()
