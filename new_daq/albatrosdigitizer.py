@@ -124,7 +124,20 @@ class AlbatrosDigitizer:
         def read_bram(self, bram, nbytes):
                 return self.fpga.read(bram, nbytes)
 
+        def read_pols(self, pols, struct_format):
+                pols_dict = {}
+                for pol in pols:
+	                pols_dict[pol] = numpy.array(struct.unpack(struct_format, self.fpga.read(pol, 2048*8)), dtype="int64")
+                return pols_dict
+
+        def read_registers(self, regs):
+                reg_dict = {}
+                for r in regs:
+	                reg_dict[r] = numpy.array(self.fpga.registers[r].read_uint())
+                return reg_dict
+
+        
         def get_fpga_temperature(self):
         	TEMP_OFFSET = 0x0
-		x = snap.read_int("xadc", TEMP_OFFSET)
+		x = self.fpga.read_int("xadc", TEMP_OFFSET)
 		return (x >> 4)*503.975/4096.00-273.15
