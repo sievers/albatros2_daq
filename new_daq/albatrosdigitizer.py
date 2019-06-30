@@ -11,6 +11,12 @@ def str2ip(ip_str):
         ip=(octets[0]<<24)+(octets[1]<<16)+(octets[2]<<8)+(octets[3])
         return ip
 
+def float2fixed(value, binary_point):
+        return value*2**binary_point
+
+def fixed2float(value, binary_point):
+        return value/2.**binary_point
+
 class AlbatrosDigitizer:
         def __init__(self, snap_ip, snap_port, logger):
                 self.logger=logger
@@ -108,15 +114,35 @@ class AlbatrosDigitizer:
     	    	self.fpga.write(channel_map, channels.astype(">H").tostring(), offset=0)
     	    	return True
 
-        def set_channel_coeffs(self, coeffs):
-	        coeffs=numpy.ones(2048, ">H")*2**int(coeffs)
-                print("here")
-	        self.fpga.write("four_bit_quant_coeffs", coeffs.tostring(), offset=0)
+        def set_channel_coeffs(self, channels, coeffs, bits):
+                if (bits==1):
+                        self.logger.info("In one bit mode. No need to write coeffs")
+                        return True
+                new_coeffs=numpy.zeros(2048)
+                new_coeffs[channels]=float2fixed(float(coeffs))
+                new_coeffs=numpy.asarray(new_coeffs, dtype=">I")
+                print(new_coeffs)
+                coeffs_bram_name=""
+                if (bits==2):
+                        coeffs_bram_name="two_bit_quant_coeffs"
+                        self.logger.info("Setting two bit coeffs")
+                if (bits==4):
+                        coeffs_bram_name="four_bit_quant_coeffs"
+                        self.logger.info("Setting four bit coeffs")
+                self.fpga.write(coeffs_bram_name, new_coeffs.tostring(), offset=0)
 	        return True 
 
-        def set_two_bit_threshold(self, threshold):
-                self.fpga.registers.two_bit_quant_threshold.write_int(threshold)
-                return True
+        def get_adc_stats(self):
+                adc_stats={}
+                for i in [0, 3]:
+                        data=self.fpga.snapshots["snapshot_adc%d"%(i)].read(man_valid=True, man_trig=True)["data"]["data"]
+                        data=numpy.asarray(data)
+                        data[data>2**7]=data[data>2**7]-2**8
+                        mean=numpy.mean(data)
+                        rms=numpy.sqrt(numpy.mean(data**2))
+                        bits_used=numpy.log2(rms)
+                        adc_stats["adc%d"%(i)]={"raw":data, "mean":mean, "rms":rms, "bits_used":bits_used}
+                return adc_stats
         
         def read_register(self, reg):
                 return self.fpga.registers[reg].read_uint()
@@ -135,7 +161,6 @@ class AlbatrosDigitizer:
                 for r in regs:
 	                reg_dict[r] = numpy.array(self.fpga.registers[r].read_uint())
                 return reg_dict
-
         
         def get_fpga_temperature(self):
         	TEMP_OFFSET = 0x0
