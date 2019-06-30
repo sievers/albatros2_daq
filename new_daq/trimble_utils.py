@@ -41,7 +41,7 @@ def get_report_trimble_raw(id=171,baud=9600,port='/dev/ttyUSB0',maxtime=10):
             st=os.stat(port)
             if ((st.st_mode&stat.S_IROTH)&(st.st_mode&stat.S_IWOTH)):
                 print 'was unable to fix permissions on port ',port, '.  Exiting get_report_trimble_raw'
-            return None
+                return None
     except:
         print 'port ',port,' does not exist.  Exiting get_report_trimble_raw'
         return None
