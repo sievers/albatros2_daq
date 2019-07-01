@@ -109,8 +109,8 @@ if __name__=="__main__":
             for pol in pols:
 	        scio_files[pol].close()
 	    for register in registers:
-	        start_raw_files[reg].close()
-	        end_raw_files[reg].close()
+	        start_raw_files[register].close()
+	        end_raw_files[register].close()
 	    file_sys_timestamp1.close()
 	    file_fpga_temp.close()
 	    file_pi_temp.close()
