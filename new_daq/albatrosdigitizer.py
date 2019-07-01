@@ -118,8 +118,8 @@ class AlbatrosDigitizer:
                 if (bits==1):
                         self.logger.info("In one bit mode. No need to write coeffs")
                         return True
-                new_coeffs=numpy.zeros(2048)
-                new_coeffs[channels]=float2fixed(float(coeffs))
+                new_coeffs=numpy.ones(2048)*int(coeffs)
+                # new_coeffs[channels]=(int(coeffs))
                 new_coeffs=numpy.asarray(new_coeffs, dtype=">I")
                 print(new_coeffs)
                 coeffs_bram_name=""
