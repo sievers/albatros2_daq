@@ -114,14 +114,10 @@ class AlbatrosDigitizer:
     	    	self.fpga.write(channel_map, channels.astype(">H").tostring(), offset=0)
     	    	return True
 
-        def set_channel_coeffs(self, channels, coeffs, bits):
+        def set_channel_coeffs(self, coeffs, bits):
                 if (bits==1):
                         self.logger.info("In one bit mode. No need to write coeffs")
                         return True
-                new_coeffs=numpy.ones(2048)*int(coeffs)
-                # new_coeffs[channels]=(int(coeffs))
-                new_coeffs=numpy.asarray(new_coeffs, dtype=">I")
-                print(new_coeffs)
                 coeffs_bram_name=""
                 if (bits==2):
                         coeffs_bram_name="two_bit_quant_coeffs"
@@ -129,7 +125,7 @@ class AlbatrosDigitizer:
                 if (bits==4):
                         coeffs_bram_name="four_bit_quant_coeffs"
                         self.logger.info("Setting four bit coeffs")
-                self.fpga.write(coeffs_bram_name, new_coeffs.tostring(), offset=0)
+                self.fpga.write(coeffs_bram_name, coeffs.tostring(), offset=0)
 	        return True 
 
         def get_adc_stats(self):
