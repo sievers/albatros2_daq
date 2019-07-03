@@ -71,17 +71,15 @@ if __name__=="__main__":
         
     try:
         chans=albatros_daq_utils.get_channels_from_str(channels, bits)
-        print(chans)
         spec_per_packet=albatros_daq_utils.get_nspec(chans, max_nbyte=max_bytes_per_packet)
-        print(spec_per_packet)
         bytes_per_spectrum=chans.shape[0]
-        print(bytes_per_spectrum)
+        coeffs=albatros_daq_utils.get_coeffs_from_str(channels_coeffs)
         albatros_snap=albatrosdigitizer.AlbatrosDigitizer(snap_ip, snap_port, logger=logger)
     	albatros_snap.initialise(fpg_file, ref_clock, fftshift, acclen, bits,
                                  spec_per_packet, bytes_per_spectrum, dest_ip, dest_port, dest_mac)
         adc_stats=albatros_snap.get_adc_stats()
         logger.info("ADC bits used: (adc0, %.2f) (adc3, %.2f)"%(adc_stats["adc0"]["bits_used"], adc_stats["adc3"]["bits_used"]))
         albatros_snap.set_channel_order(chans, bits)
-        albatros_snap.set_channel_coeffs(chans, channels_coeffs, bits)
+        albatros_snap.set_channel_coeffs(coeffs, bits)
     finally:
         logger.info("Finished initialising at %s"%datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S"))
