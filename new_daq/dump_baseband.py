@@ -35,14 +35,14 @@ def write_header(file_object, chans, spec_per_packet, bytes_per_packet, bits, ha
             latlon['elev']=0
         else:
             print 'lat/lon/elev are ',latlon['lat'],latlon['lon'],latlon['elev']
-        latlon=numpy.asarray([latlon['lat'],latlon['lon'],latlon['elev']],dtype='>q')
+        latlon=numpy.asarray([latlon['lat'],latlon['lon'],latlon['elev']],dtype='>d')
         latlon.tofile(file_object)
     else:
         gps_time={"week":0, "seconds":0}
         gps_time=numpy.asarray([gps_time['week'],gps_time['seconds']],dtype='>Q')
         gps_time.tofile(file_object)
         latlon={"lat":0, "lon":0, "elev":0}
-        latlon=numpy.asarray([latlon['lat'],latlon['lon'],latlon['elev']],dtype='>q')
+        latlon=numpy.asarray([latlon['lat'],latlon['lon'],latlon['elev']],dtype='>d')
         latlon.tofile(file_object)
     return None
 
