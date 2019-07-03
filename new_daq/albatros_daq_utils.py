@@ -23,7 +23,16 @@ def get_channels_from_str(chan, nbits):
             chans=np.arange(chan_start_stop[2*i], chan_start_stop[2*i+1], dtype=">H")
             new_chans=np.append(new_chans, np.ravel(np.column_stack((chans, chans))))
     return new_chans
-    
+
+def get_coeffs_from_str(coeffs):
+    multi_coeff=coeffs.split(" ")
+    new_coeffs=np.zeros(2048)
+    for single_coeff in multi_coeff:
+        start_stop_coeff=map(int, single_coeff.split(":"))
+        new_coeffs[np.arange(start_stop_coeff[0], start_stop_coeff[1])]=start_stop_coeff[2]
+    new_coeffs=np.asarray(new_coeffs, dtype=">I")
+    return new_coeffs
+
 def get_channels_from_freq(nu=[0,30],nbit=0,nu_max=125,nchan=2048,dtype='>i2',verbose=False):
 
     nseg=len(nu)/2
