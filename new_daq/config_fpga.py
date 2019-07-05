@@ -7,6 +7,7 @@ import datetime
 import albatrosdigitizer
 import albatros_daq_utils
 import numpy
+import trimble_utils
 
 if __name__=="__main__":
     parser=argparse.ArgumentParser(description="Script to initialise SNAP Board")
@@ -19,15 +20,21 @@ if __name__=="__main__":
     logger=logging.getLogger("albatros2_config_fpga")
     logger.setLevel(logging.INFO)
 
-    log_dir=config_file.get("albatros2", "init_log_directory")
+    log_dir=config_file.get("albatros2", "config_fpga_log_directory")
     if not os.path.isdir(log_dir):
         os.mkdir(log_dir)
-    log_name=config_file.get("albatros2", "init_log_name")
-    file_logger=logging.FileHandler(log_dir+log_name+"_"+datetime.datetime.now().strftime("%d%m%Y_%H%M%S")+".log")
+    file_logger=logging.FileHandler(log_dir+"albatros_init_"+datetime.datetime.now().strftime("%d%m%Y_%H%M%S")+".log")
     file_format=logging.Formatter("%(asctime)s %(name)-12s %(message)s", "%d-%m-%Y %H:%M:%S")
     file_logger.setFormatter(file_format)
     file_logger.setLevel(logging.INFO)
     logger.addHandler(file_logger)
+
+    if trimble_utils.set_clock_trimble():
+        logger.info("Trimble GPS clock successfully detected.")
+        logger.info("Successfully updated system clock to gps time from trimble.")
+    else:
+        logger.info("Unable to read time from trimble. Using RPi system clock which is unrealiable")
+
     logger.info("########################################################################################")
     snap_ip=config_file.get("albatros2", "snap_ip")
     logger.info("# (1) SNAP Board IP address: %s"%(snap_ip))
@@ -60,14 +67,13 @@ if __name__=="__main__":
     logger.info("# (12) Channels: %s"%(channels))
     channels_coeffs=config_file.get("albatros2", "channel_coeffs")
     logger.info("# (13) Channel coeffs: %s"%(channels_coeffs))
-    logger.info("# (14) Start of log file name: %s"%(log_name+"_%d%m%Y%_%H%M%S"))
-    logger.info("# (15) Log directory: %s"%(log_dir))
+    logger.info("# (14) Log directory: %s"%(log_dir))
     logger.info("########################################################################################")
-    drives_full=config_file.get("albatros2", "drives_full")
-    if drives_full=="true":
-        logger.info("All drives are full. Holding here!!!")
-        while True:
-            pass
+    # drives_full=config_file.get("albatros2", "drives_full")
+    # if drives_full=="true":
+    #    logger.info("All drives are full. Holding here!!!")
+    #     while True:
+    #         pass
         
     try:
         chans=albatros_daq_utils.get_channels_from_str(channels, bits)
