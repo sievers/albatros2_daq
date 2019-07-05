@@ -74,7 +74,8 @@ if __name__=="__main__":
 		start_raw_files[register] = open("%s/%s1.raw"%(outsubdir, register), "w")
 		end_raw_files[register] = open("%s/%s2.raw"%(outsubdir, register), "w")
 	    for pol in pols:
-		scio_files[pol] = scio.scio("%s/%s.scio"%(outsubdir, pol))
+		# scio_files[pol] = scio.scio("%s/%s.scio"%(outsubdir, pol))
+		scio_files[pol] = scio.scio("%s/%s.scio"%(outsubdir, pol), diff=True, compress='bzip2')
 	    acc_cnt = 0 
             while time.time()-start_time < 60*60:
 		new_acc_cnt = digitizer.read_registers(["acc_cnt"])
@@ -96,16 +97,16 @@ if __name__=="__main__":
 			start_raw_files[register].flush()
 			numpy.array(end_reg_data[register]).tofile(end_raw_files[register])
 			end_raw_files[register].flush()
+		    numpy.array(start_sys_timestamp).tofile(file_sys_timestamp1)
+		    numpy.array(digitizer.get_fpga_temperature()).tofile(file_fpga_temp)
+		    numpy.array(get_rpi_temperature()).tofile(file_pi_temp)
+		    numpy.array(end_sys_timestamp).tofile(file_sys_timestamp2)
+		    file_sys_timestamp1.flush()
+		    file_fpga_temp.flush()
+		    file_pi_temp.flush()
+		    file_sys_timestamp2.flush()
                     for pol in pols:
 			scio_files[pol].append(pol_data[pol])
-			numpy.array(start_sys_timestamp).tofile(file_sys_timestamp1)
-			numpy.array(digitizer.get_fpga_temperature()).tofile(file_fpga_temp)
-			numpy.array(get_rpi_temperature()).tofile(file_pi_temp)
-			numpy.array(end_sys_timestamp).tofile(file_sys_timestamp2)
-			file_sys_timestamp1.flush()
-			file_fpga_temp.flush()
-			file_pi_temp.flush()
-			file_sys_timestamp2.flush()
             for pol in pols:
 	        scio_files[pol].close()
 	    for register in registers:
