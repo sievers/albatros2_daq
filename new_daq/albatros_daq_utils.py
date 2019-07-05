@@ -4,6 +4,8 @@ import sys
 import math
 import operator
 import os
+import stat
+import datetime
 
 def get_channels_from_str(chan, nbits):
     new_chans=np.empty(0, dtype=">H")
@@ -138,14 +140,14 @@ def find_emptiest_drive(tag='media'):
         return None
 
 def list_drives_to_write_too(drive="ALBATROS"):
-    process_output=subprocess.check_output(['df','-k'])
+    process_output=subprocess.check_output(['df','-k', '--block-size=1'])
     process_lines=process_output.split('\n')
     drives=[]
     for line in process_lines:
         if len(line)>0:
             tags=line.split()
             if tags[-1].find(drive)>=0:
-                drives.append({"Partion name":tags[-1].split("/")[-1], "Filesystem":tags[0], "1K-blocks":int(tags[1]), "Used":int(tags[2]), "Available":int(tags[3]), "Use%":int(tags[4][:-1]), "Mounted on":tags[5]})
+                drives.append({"Partition name":tags[-1].split("/")[-1], "Device":tags[0], "Blocks":int(tags[1]), "Used":int(tags[2]), "Available":int(tags[3]), "Use%":int(tags[4][:-1]), "Mounted on":tags[5]})
     drive_free_bytes=[]
     for drive in drives:
         drive_free_bytes.append(drive["Use%"])
@@ -158,8 +160,10 @@ def list_drives_to_write_too(drive="ALBATROS"):
 
 def num_files_can_write(drive_path, safety, file_size):
     st=os.statvfs(drive_path)
-    free_bytes=st.f_bavail*st.f_frsize
-    nfile_targ=int(safety*free_bytes/(1.0e9*file_size))
+    used_bytes=st.f_blocks*st.f_bsize-st.f_bfree*st.f_bsize
+    free_bytes=st.f_bsize*st.f_bavail
+    total=used_bytes+free_bytes
+    nfile_targ=int(math.floor(((safety/100.)*total-used_bytes)/(1.024e9*file_size)))
     return nfile_targ
     
 def find_mac():    
@@ -176,3 +180,12 @@ def find_mac():
             mac='0x'+tags[0][3:-1]
     return mac
             
+def gps_time_from_rtc():
+    utc=datetime.datetime.now()
+    datetimeformat="%Y-%m-%d %H:%M:%S"
+    epoch=datetime.datetime.strptime("1980-01-06 00:00:00",datetimeformat)
+    tdiff=utc-epoch
+    gpsweek=tdiff.days//7 
+    gpsdays=tdiff.days-7*gpsweek         
+    gpsseconds=tdiff.seconds+86400*(tdiff.days-7*gpsweek)
+    return {"week":gpsweek, "seconds":gpsseconds}
