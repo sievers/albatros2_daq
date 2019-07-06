@@ -27,7 +27,7 @@ if __name__=="__main__":
 
     logger=logging.getLogger("dump_spectra")
     logger.setLevel(logging.INFO)
-    log_dir=config_file.get("albatros2", "spectra_log_directory")
+    log_dir=config_file.get("albatros2", "dump_spectra_log_directory")
     if not os.path.isdir(log_dir):
         os.mkdir(log_dir)
     file_logger=logging.FileHandler(log_dir+"albatros_spectra_"+datetime.datetime.now().strftime("%d%m%Y_%H%M%S")+".log")
@@ -42,7 +42,7 @@ if __name__=="__main__":
     logger.info("# (2) SNAP Board port: %d"%(snap_port))
     acclen=int(config_file.get("albatros2", "accumulation_length"))
     logger.info("# (3) Accumulation length: %d"%(acclen))
-    spectra_output_dir=config_file.get("albatros2", "spectra_output_directory")
+    spectra_output_dir=config_file.get("albatros2", "dump_spectra_output_directory")
     logger.info("# (4) Spectra output directory: %s"%(spectra_output_dir))
     pols=config_file.get("albatros2", "pols")
     logger.info("# (5) Pols: %s"%(pols))
