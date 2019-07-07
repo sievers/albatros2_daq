@@ -48,7 +48,13 @@ if __name__=="__main__":
     logger.info("# (5) Pols: %s"%(pols))
     registers=config_file.get("albatros2", "registers")
     logger.info("# (6) Registers: %s"%(registers))
-    logger.info("# (7) Log directory: %s"%(log_dir))
+    compress_scio_files=config_file.get("albatros2", "compress_scio_files")
+    if compress_scio_files=="None":
+        compress_scio_files=None
+    logger.info("# (7) Compress scio files: %s"%(compress_scio_files))
+    diff_scio_files=config_file.getboolean("albatros2", "diff_scio_files")
+    logger.info("# (8) Diff scio files: %r"%(diff_scio_files))
+    logger.info("# (9) Log directory: %s"%(log_dir))
     logger.info("########################################################################################")
     try:
         digitizer=albatrosdigitizer.AlbatrosDigitizer(snap_ip, snap_port, logger=logger)
@@ -75,7 +81,8 @@ if __name__=="__main__":
 		end_raw_files[register] = open("%s/%s2.raw"%(outsubdir, register), "w")
 	    for pol in pols:
 		# scio_files[pol] = scio.scio("%s/%s.scio"%(outsubdir, pol))
-		scio_files[pol] = scio.scio("%s/%s.scio"%(outsubdir, pol), diff=True, compress='bzip2')
+                # scio_files[pol] = scio.scio("%s/%s.scio"%(outsubdir, pol), diff=True, compress='bzip2')
+		scio_files[pol] = scio.scio("%s/%s.scio"%(outsubdir, pol), diff=diff_scio_files, compress=compress_scio_files)
 	    acc_cnt = 0 
             while time.time()-start_time < 60*60:
 		new_acc_cnt = digitizer.read_registers(["acc_cnt"])
