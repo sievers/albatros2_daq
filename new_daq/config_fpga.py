@@ -65,9 +65,11 @@ if __name__=="__main__":
         ref_clock=int(ref_clock)
     channels=config_file.get("albatros2", "channels")
     logger.info("# (12) Channels: %s"%(channels))
+    adc_digital_gain=config_file.get("albatros2", "adc_digital_gain")
+    logger.info("# (13) ADC digital gain: %s"%(adc_digital_gain))
     channels_coeffs=config_file.get("albatros2", "channel_coeffs")
-    logger.info("# (13) Channel coeffs: %s"%(channels_coeffs))
-    logger.info("# (14) Log directory: %s"%(log_dir))
+    logger.info("# (14) Channel coeffs: %s"%(channels_coeffs))
+    logger.info("# (15) Log directory: %s"%(log_dir))
     logger.info("########################################################################################")
     # drives_full=config_file.get("albatros2", "drives_full")
     # if drives_full=="true":
@@ -82,7 +84,8 @@ if __name__=="__main__":
         coeffs=albatros_daq_utils.get_coeffs_from_str(channels_coeffs)
         albatros_snap=albatrosdigitizer.AlbatrosDigitizer(snap_ip, snap_port, logger=logger)
     	albatros_snap.initialise(fpg_file, ref_clock, fftshift, acclen, bits,
-                                 spec_per_packet, bytes_per_spectrum, dest_ip, dest_port, dest_mac)
+                                 spec_per_packet, bytes_per_spectrum, dest_ip,
+                                 dest_port, dest_mac, adc_digital_gain)
         adc_stats=albatros_snap.get_adc_stats()
         logger.info("ADC bits used: (adc0, %.2f) (adc3, %.2f)"%(adc_stats["adc0"]["bits_used"], adc_stats["adc3"]["bits_used"]))
         albatros_snap.set_channel_order(chans, bits)
