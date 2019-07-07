@@ -17,6 +17,9 @@ def float2fixed(value, binary_point):
 def fixed2float(value, binary_point):
         return value/2.**binary_point
 
+GAIN_MAP={1:0b0000, 1.25:0b0001, 2:0b0010, 2.5:0b0011, 4:0b0100, 5:0b0101, 8:0b0110, 10:0b0111, 12.5:0b1000, 16:0b1001, 20:0b1010, 25:0b1011,
+          32:0b1100, 50:0b1101}
+
 class AlbatrosDigitizer:
         def __init__(self, snap_ip, snap_port, logger):
                 self.logger=logger
@@ -28,7 +31,7 @@ class AlbatrosDigitizer:
         	else:
         	        self.logger.info("Fpga not programmed")
 
-        def initialise(self, fpg_file, ref_clock, fftshift, acclen, bits, spec_per_packet, bytes_per_spectrum, dest_ip, dest_port, dest_mac, prog_tries=3, adc_tries=3):
+        def initialise(self, fpg_file, ref_clock, fftshift, acclen, bits, spec_per_packet, bytes_per_spectrum, dest_ip, dest_port, dest_mac, adc_digital_gain, prog_tries=3, adc_tries=3):
                 self.logger.info("Initialising SNAP Board")
 		for i in range(prog_tries):
         	        if self.fpga.upload_to_ram_and_program(fpg_file):
@@ -52,6 +55,8 @@ class AlbatrosDigitizer:
 		    	else:
         	    	        self.logger.critical("ADC initialisation failed after "+str(adc_tries)+" tries. Exiting!!!")
         	    	        return False
+                self.logger.info("Setting ADC digital gain")
+                snap_adc.write(gain_map[adc_digital_gain])
         	self.logger.info("FPGA clock: %f"%self.fpga.estimate_fpga_clock())
 		self.logger.info("Setting FFT shift")
 		self.fpga.registers.pfb_fft_shift.write_int(fftshift)
