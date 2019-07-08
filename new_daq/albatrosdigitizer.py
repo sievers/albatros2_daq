@@ -17,8 +17,8 @@ def float2fixed(value, binary_point):
 def fixed2float(value, binary_point):
         return value/2.**binary_point
 
-GAIN_MAP={1:0b0000, 1.25:0b0001, 2:0b0010, 2.5:0b0011, 4:0b0100, 5:0b0101, 8:0b0110, 10:0b0111, 12.5:0b1000, 16:0b1001, 20:0b1010, 25:0b1011,
-          32:0b1100, 50:0b1101}
+GAIN_MAP={'1':0b0000, '1.25':0b0001, '2':0b0010, '2.5':0b0011, '4':0b0100, '5':0b0101, '8':0b0110, '10':0b0111, '12.5':0b1000, '16':0b1001, '20':0b1010, '25':0b1011,
+          '32':0b1100, '50':0b1101}
 
 class AlbatrosDigitizer:
         def __init__(self, snap_ip, snap_port, logger):
@@ -56,7 +56,7 @@ class AlbatrosDigitizer:
         	    	        self.logger.critical("ADC initialisation failed after "+str(adc_tries)+" tries. Exiting!!!")
         	    	        return False
                 self.logger.info("Setting ADC digital gain")
-                snap_adc.write(gain_map[adc_digital_gain])
+                snap_adc.adc._write((GAIN_MAP[adc_digital_gain]<<4) + GAIN_MAP[adc_digital_gain], 0x2b)
         	self.logger.info("FPGA clock: %f"%self.fpga.estimate_fpga_clock())
 		self.logger.info("Setting FFT shift")
 		self.fpga.registers.pfb_fft_shift.write_int(fftshift)
