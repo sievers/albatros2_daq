@@ -67,6 +67,7 @@ if __name__ == '__main__':
         fp.write('bits='+bits+'\n')
         fp.write('channels='+channels+'\n')
         fp.write('channel_coeffs='+channel_coeffs+'\n')
+        fp.close()
         # Configure FPGA
         cmd = cmd_config_fpga+' -c '+config_fname
         retval = os.system(cmd)
