@@ -47,7 +47,7 @@ class AlbatrosDigitizer:
 		    	                snap_adc.adc.selectInput([1,2,3,4])
                                 self.logger.info("ADC's initialised after %d attempts/s"%(i+1))
                                 break
-                        elif i<adc_tries:
+                        elif i<adc_tries-1:
                                 self.logger.error("ADC initialisation failed. Retrying!!!")
 		    	else:
         	    	        self.logger.critical("ADC initialisation failed after "+str(adc_tries)+" tries. Exiting!!!")
