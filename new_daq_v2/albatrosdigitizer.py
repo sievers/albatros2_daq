@@ -31,7 +31,7 @@ class AlbatrosDigitizer:
         def initialise(self, fpg_file, ref_clock, fftshift, acclen, bits, spec_per_packet, bytes_per_spectrum, dest_ip, dest_port, dest_mac, adc_digital_gain, prog_tries=3, adc_tries=3):
                 self.logger.info("Initialising SNAP Board")
 		for i in range(prog_tries):
-			if self.fpga.upload_to_ram_and_program(fpg_file, timeout=30):
+			if self.fpga.upload_to_ram_and_program(fpg_file):
         	                self.logger.info("Fpga programmed sucessfully after %d attempt/s"%(i+1))
 			        break
 		        elif i<prog_tries-1:
