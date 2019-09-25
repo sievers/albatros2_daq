@@ -31,27 +31,32 @@ class AlbatrosDigitizer:
         def initialise(self, fpg_file, ref_clock, fftshift, acclen, bits, spec_per_packet, bytes_per_spectrum, dest_ip, dest_port, dest_mac, adc_digital_gain, prog_tries=3, adc_tries=3):
                 self.logger.info("Initialising SNAP Board")
 		for i in range(prog_tries):
-        	        if self.fpga.upload_to_ram_and_program(fpg_file):
-                                self.logger.info("Fpga programmed sucessfully after %d attempt/s"%(i+1))
+			if self.fpga.upload_to_ram_and_program(fpg_file, timeout=30):
+        	                self.logger.info("Fpga programmed sucessfully after %d attempt/s"%(i+1))
 			        break
 		        elif i<prog_tries-1:
 			        self.logger.error("Failed to program. Retrying!!!")
         	        else:
         	                self.logger.critical("Failed to program after "+str(prog_tries)+" tries.")
-			        exit(1)
-		snap_adc=casperfpga.snapadc.SNAPADC(self.fpga, ref=ref_clock)
+			        return False
+		snap_adc=casperfpga.snapadc.SNAPADC(self.fpga, ref=ref_clock, resolution=8, cs=0xff)
 		for i in range(adc_tries):
-        	    	if snap_adc.init(samplingRate=250, numChannel=4, resolution=8)==0:
+        	    	if snap_adc.init(samplingRate=250, numChannel=4)==0:
         	    	        for j in range(3):
 		    	                snap_adc.selectADC(j)
 		    	                snap_adc.adc.selectInput([1,2,3,4])
                                 self.logger.info("ADC's initialised after %d attempts/s"%(i+1))
                                 break
-                        elif i<adc_tries:
+                        elif i<adc_tries-1:
                                 self.logger.error("ADC initialisation failed. Retrying!!!")
 		    	else:
         	    	        self.logger.critical("ADC initialisation failed after "+str(adc_tries)+" tries. Exiting!!!")
-        	    	        exit(1)
+        	    	        return False
+                self.logger.info("Setting ADC digital gain")
+                snap_adc.adc.cGain([adc_digital_gain, adc_digital_gain, adc_digital_gain, adc_digital_gain])
+                self.logger.info("Powering down ADC's 2 and 3")
+                snap_adc_pd=casperfpga.snapadc.SNAPADC(self.fpga, ref=ref_clock, resolution=8, cs=0x06)
+                snap_adc_pd.adc.powerDown()
                 self.logger.info("FPGA clock: %f"%self.fpga.estimate_fpga_clock())
 		self.logger.info("Setting FFT shift")
 		self.fpga.registers.pfb_fft_shift.write_int(fftshift)
