@@ -1,0 +1,51 @@
+snap-board:
+    ip: 127.0.0.1
+    port: 7147
+
+firmware:
+    fpg_file: /home/pi/albatros2_daq/firmware/quad_input_poco_gbe_2019-07-02_1237.fpg
+
+synthesizer:
+    input: Internal
+    frequency: 10
+
+adcs:
+   adc_digital_gain: 2
+   adc_2_off: True
+   adc_3_off: True
+
+pfb:
+    fftshift: 0xffffffff
+
+test-vector-generator:
+    enable: False
+    data: test_data.npy
+
+xcorr:
+    accumulation_length: 393216
+    diff: True
+    compress: bzip2
+    data_directory: /media/pi/ALBATROS_2TB_11/spectra_1/
+
+packetiser:
+    bits: 1
+    max_bytes_per_packet: 1300
+    channels: 500:992
+    channel_coeffs: 500:746:75 
+
+baseband:
+    drive_safety: 22.5
+    file_size: 0.5
+    directory_name: albatros_baseband_test_105
+
+ethernet:
+    destination_ip: 192.168.2.200
+    destination_port: 4321
+    destination_mac: 0xb827eb153fc4
+
+log_directory: /home/pi/logs/albatros_config_fpga/
+
+log_level: 20
+
+
+
