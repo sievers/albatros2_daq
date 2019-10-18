@@ -11,8 +11,7 @@ synthesizer:
 
 adcs:
    adc_digital_gain: 2
-   adc_2_off: True
-   adc_3_off: True
+   adcs_unused_off: True
 
 pfb:
     fftshift: 0xffffffff
