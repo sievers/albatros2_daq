@@ -40,7 +40,7 @@ Here are the instructions for making a sd card for Raspberry Pi 4 or any RPi ver
     sudo apt update
     sudo apt upgrade
 
-(7) Install the raspberry kernel headers:
+(7) (Not needed anymore, so you can skip it) Install the raspberry kernel headers:
 
     sudo apt-get install libraspberrypi-dev raspberrypi-kernel-headers
 
