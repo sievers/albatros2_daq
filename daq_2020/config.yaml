@@ -30,21 +30,34 @@ packetiser:
     channel_coeffs: 500:746:75
 
 ethernet:
-    destination_ip: 192.168.2.200
-    destination_port: 4321
-    destination_mac: 0xb827eb153fc4
+    local_ip: 192.230.92.200
+    local_port: 4321
+    local_mac: 0xabcde123456
+    destination_ip: 192.230.92.100
+    destination_port: 10000
 
 baseband:
-    drive_safety: 22.5
+    drive_safety: 100.00
     file_size: 500
     directory_name: baseband
+
+mount_directory: /home/pi/data_baseband
+
+hard-drives:
+    - drive_1:
+        label: ALBATROS_2TB_2
+        pm: 0
+    - drive_2:
+        label: ALBATROS_2TB_1
+        pm: 1
 
 spectra:
     diff: False
     compress: bzip2
     file_size: 100
     directory_name: spectra
+    data_directory: /home/pi/spectra
 
-log_level: 20
+log_level: 10
 
 log_directory: /home/pi/logs/
