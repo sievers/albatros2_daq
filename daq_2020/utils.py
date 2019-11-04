@@ -6,6 +6,7 @@ import operator
 import os
 import stat
 import datetime
+import psutil
 
 def get_channels_from_str(chan, nbits):
     new_chans=np.empty(0, dtype=">H")
@@ -139,46 +140,23 @@ def find_emptiest_drive(tag='media'):
     else:
         return None
 
-def list_drives_to_write_too(drive="ALBATROS"):
-    process_output=subprocess.check_output(['df','-k', '--block-size=1'])
-    process_lines=process_output.split('\n')
-    drives=[]
-    for line in process_lines:
-        if len(line)>0:
-            tags=line.split()
-            if tags[-1].find(drive)>=0:
-                drives.append({"Partition name":tags[-1].split("/")[-1], "Device":tags[0], "Blocks":int(tags[1]), "Used":int(tags[2]), "Available":int(tags[3]), "Use%":int(tags[4][:-1]), "Mounted on":tags[5]})
-    drive_free_bytes=[]
-    for drive in drives:
-        drive_free_bytes.append(drive["Use%"])
+def list_drives(drive_tag):
+    drives=psutil.disk_partitions()
     new_drives=[]
-    for i in range(len(drive_free_bytes)):
-        max_index, max_value=max(enumerate(drive_free_bytes), key=operator.itemgetter(1))
-        new_drives.append(drives.pop(max_index))
-        drive_free_bytes.pop(max_index)
-    return new_drives
+    for drive in drives:
+        if drive.mountpoint.lower().find(drive_tag.lower())>1:
+            new_drives.append(drive)
+    drives=new_drives
+    drives.sort(key=lambda x:psutil.disk_usage(x.mountpoint).percent)
+    return drives
 
 def num_files_can_write(drive_path, safety, file_size):
-    st=os.statvfs(drive_path)
-    used_bytes=st.f_blocks*st.f_bsize-st.f_bfree*st.f_bsize
-    free_bytes=st.f_bsize*st.f_bavail
-    total=used_bytes+free_bytes
-    nfile_targ=int(math.floor(((safety/100.)*total-used_bytes)/(1.024e9*file_size)))
-    return nfile_targ
-    
-def find_mac():    
-    mystr=subprocess.check_output('ifconfig')
-    lines=mystr.split('\n')
-    targ='192.168.2.200'
-    mac=""
-    for i in range(len(lines)):
-        ll=lines[i]
-        if ll.find(targ)>0:
-            #print 'found target in line ',ll
-            #print 'previous line was ',lines[i-1]
-            tags=lines[i-1].split()
-            mac='0x'+tags[0][3:-1]
-    return mac
+    stats=psutil.disk_usage(drive_path)
+    if stats.percent>=safety:
+        return 0
+    else:
+        nfile_targ=int(math.floor(((safety/100.)*stats.total-stats.used)/(1.024e6*file_size)))
+        return nfile_targ
             
 def gps_time_from_rtc():
     utc=datetime.datetime.now()
