@@ -3,7 +3,7 @@ snap-board:
     port: 7147
 
 firmware:
-    fpg_file: /home/pi/albatros2_daq/firmware/albatros_dual_input_gbe_2019-10-24_0132.fpg
+    fpg_file: /home/pi/albatros2_daq/firmware/quad_input_poco_gbe_2019-11-03_0925.fpg
 
 synthesizer:
     input: Internal
@@ -23,11 +23,13 @@ test-vector-generator:
 xcorr:
     accumulation_length: 393216
 
-packetiser:
+output-control:
     bits: 1
-    max_bytes_per_packet: 1300
     channels: 500:992
     channel_coeffs: 500:746:75
+
+packetiser:
+    max_bytes_per_packet: 1300
 
 ethernet:
     local_ip: 192.230.92.200
@@ -58,6 +60,6 @@ spectra:
     directory_name: spectra
     data_directory: /home/pi/spectra
 
-log_level: 10
+log_level: 20
 
 log_directory: /home/pi/logs/
