@@ -110,9 +110,15 @@ cd ..
 echo "Exiting software"
 cd ~
 
+echo "Moving to albatros2_daq/scripts"
+cd ~/albatros2_daq/scripts/
+
 echo "Increasing network buffer size to 512Mb"
-bytes=$((512 * 1024000))
-echo "sysctl net.core.rmem_default="$bytes"
-sysctl net.core.rmem_max="$bytes"" | sudo tee -a /etc/sysctl.conf
+bytes=$((512 * 1024 * 1000))
+sudo ./set_udp_buffer.py /etc/sysctl.conf -rx $bytes
+
+echo "Exiting albatros2_daq/scripts"
+cd ~
 
 echo "All done. Please reboot"
+
