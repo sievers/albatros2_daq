@@ -29,7 +29,7 @@ def write_header(file_object, chans, spec_per_packet, bytes_per_packet, bits, lo
         gps_time['week']=gps_time_rpi["week"]
         gps_time['seconds']=gps_time_rpi["seconds"]
     else:
-        logger.debug('ps time is now ',gps_time['week'],gps_time['seconds'])
+        logger.debug('ps time is now; week: %d, seconds: %d'%(gps_time['week'],gps_time['seconds']))
         have_trimble=True
     file_header=numpy.asarray([header_bytes, bytes_per_packet, len(chans), spec_per_packet, bits, have_trimble], dtype='>Q')
     file_header.tofile(file_object)
@@ -44,7 +44,7 @@ def write_header(file_object, chans, spec_per_packet, bytes_per_packet, bits, lo
         latlon['lon']=0
         latlon['elev']=0
     else:
-        logger.debug('lat/lon/elev are ',latlon['lat'],latlon['lon'],latlon['elev'])
+        logger.debug('lat/lon/elev are %f/%f/%f'%(latlon['lat'],latlon['lon'],latlon['elev']))
     latlon=numpy.asarray([latlon['lat'],latlon['lon'],latlon['elev']],dtype='>d')
     latlon.tofile(file_object)
     return None
@@ -85,7 +85,6 @@ if __name__=="__main__":
     output_control=parameters["output-control"]
     packetiser=parameters["packetiser"]
     baseband=parameters["baseband"]
-    mount_directory=parameters["mount_directory"]
     harddrives=parameters["hard-drives"]
     spectra=parameters["spectra"]
     ethernet=parameters["ethernet"]
