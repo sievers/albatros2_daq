@@ -58,7 +58,6 @@ if __name__=="__main__":
     output_control=parameters["output-control"]
     packetiser=parameters["packetiser"]
     baseband=parameters["baseband"]
-    mount_directory=parameters["mount_directory"]
     harddrives=parameters["hard-drives"]
     spectra=parameters["spectra"]
     ethernet=parameters["ethernet"]
@@ -110,8 +109,7 @@ if __name__=="__main__":
     logger.info("\tdrive safety: %.2f"%(baseband["drive_safety"]))
     logger.info("\tfile size: %.2f"%(baseband["file_size"]))
     logger.info("\tdirectory name: %s"%(baseband["directory_name"]))
-    logger.info("MOUNT-DIRECTORY:")
-    logger.info("\tmount directory: %s"%(mount_directory))
+    logger.info("\tmount directory: %s"%(baseband["mount_directory"]))
     logger.info("HARD-DRIVES:")
     for drive in harddrives:
         drive_tag=drive.keys()[0]

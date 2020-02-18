@@ -60,7 +60,7 @@ if __name__=="__main__":
 
     log_level=parameters["log_level"]
     log_directory=parameters["log_directory"]
-        
+
     if not os.path.isdir(log_directory):
         os.makedirs(log_directory)
 
@@ -136,8 +136,7 @@ if __name__=="__main__":
     logger.info("\tdrive safety: %.2f"%(baseband["drive_safety"]))
     logger.info("\tfile size: %.2f"%(baseband["file_size"]))
     logger.info("\tdirectory name: %s"%(baseband["directory_name"]))
-    logger.info("MOUNT-DIRECTORY:")
-    logger.info("\tmount directory: %s"%(mount_directory))
+    logger.info("\tmount directory: %s"%(baseband["mount_directory"]))
     logger.info("HARD-DRIVES:")
     for drive in harddrives:
         drive_tag=drive.keys()[0]
@@ -175,18 +174,17 @@ if __name__=="__main__":
     reads_for_many_packets=50000
     time_for_many_packets=(2048*2/250e6)*spectra_per_packet*reads_for_many_packets
 
-    if not os.path.isdir(mount_directory):
-        os.makedirs(mount_directory)
-
     try:
+        print(harddrives)
         for drive in harddrives:
+            print(drive)
             drive_tag=drive.keys()[0]
-            logger.info("Mounting %s:%s to %s"%(drive_tag, drive[drive_tag]["label"], mount_directory))
-            process_mount=subprocess.Popen(["sudo", "mount", "-L", drive[drive_tag]["label"], mount_directory]).wait()
-            number_of_files=utils.num_files_can_write(mount_directory, baseband["drive_safety"], baseband["file_size"])
+            number_of_files=utils.num_files_can_write(baseband["mount_directory"]+drive[drive_tag]["label"], 
+                                                      baseband["drive_safety"], 
+                                                      baseband["file_size"])
             logger.debug("Number of files: %d"%(number_of_files))
             if number_of_files>0:
-                write_path=mount_directory+"/"+baseband["directory_name"]
+                write_path=baseband["mount_directory"]+drive[drive_tag]["label"]+"/"+baseband["directory_name"]
                 for i in range(number_of_files):
                     directory_time=str(int(time.time()))[:5]
                     if not os.path.isdir(write_path+"/"+directory_time):
@@ -212,14 +210,10 @@ if __name__=="__main__":
                             time_for_many_reads=time_after_many_reads
                             num_of_reads=0
                     baseband_file.close()
-            logger.info("Un-mounting %s:%s from %s"%(drive_tag, drive[drive_tag]["label"], mount_directory))
-            process_umount=subprocess.Popen(["sudo", "umount", "-R", mount_directory]).wait()
     except:
         logger.info("Something went wrong!!!. This is the error:")
         exc_type, exc_value, exc_traceback=sys.exc_info()
         logger.error("%s"%(traceback.format_exc()))
     finally:
         sock.close()
-        logger.info("Un-mounting %s:%s from %s"%(drive_tag, drive[drive_tag]["label"], mount_directory))
-        process_umount=subprocess.Popen(["sudo", "umount", "-R", mount_directory]).wait()
         logger.info("Terminated at %s"%(datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S")))
