@@ -42,8 +42,7 @@ baseband:
     drive_safety: 100.00
     file_size: 500
     directory_name: baseband
-
-mount_directory: /home/pi/data_baseband
+    mount_directory: /mnt/
 
 hard-drives:
     - drive_1:
