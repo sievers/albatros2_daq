@@ -9,7 +9,7 @@ import datetime
 import psutil
 
 def get_channels_from_str(chan, nbits):
-    new_chans=np.empty(0, dtype=">H")
+    pack_chans=np.empty(0,dtype=">H")
     multi_chan=chan.split(" ")
     chan_start_stop=[]
     for single_chan in multi_chan:
@@ -17,15 +17,25 @@ def get_channels_from_str(chan, nbits):
         chan_start_stop.extend(start_stop)
     if nbits==1:
         for i in range(len(chan_start_stop)/2):
-            new_chans=np.append(new_chans, np.arange(chan_start_stop[2*i], chan_start_stop[2*i+1], 2, dtype=">H"))
+            if (chan_start_stop[2*i]%2!=0):
+                chan_start_stop[2*i]=chan_start_stop[2*i]-1
+            print(chan_start_stop)
+            pack_chans=np.append(pack_chans, np.arange(chan_start_stop[2*i], chan_start_stop[2*i+1], 2, dtype=">H"))
+            real_chans=np.ravel(np.column_stack([pack_chans,pack_chans+1]))
     elif nbits==2:
         for i in range(len(chan_start_stop)/2):
-            new_chans=np.append(new_chans, np.arange(chan_start_stop[2*i], chan_start_stop[2*i+1], dtype=">H"))
+            if (chan_start_stop[2*i+1]%2!=0):
+                chan_start_stop[2*i+1]=chan_start_stop[2*i+1]+1
+            pack_chans=np.append(pack_chans, np.arange(chan_start_stop[2*i], chan_start_stop[2*i+1], dtype=">H"))
+            real_chans=pack_chans
     else:
         for i in range(len(chan_start_stop)/2):
+            if (chan_start_stop[2*i+1]%2!=0):
+                chan_start_stop[2*i+1]=chan_start_stop[2*i+1]+1
             chans=np.arange(chan_start_stop[2*i], chan_start_stop[2*i+1], dtype=">H")
-            new_chans=np.append(new_chans, np.ravel(np.column_stack((chans, chans))))
-    return new_chans
+            pack_chans=np.append(pack_chans, np.ravel(np.column_stack((chans, chans))))
+            real_chans=pack_chans[::2]
+    return pack_chans, real_chans
 
 def get_coeffs_from_str(coeffs):
     multi_coeff=coeffs.split(" ")
