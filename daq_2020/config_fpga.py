@@ -62,9 +62,9 @@ if __name__=="__main__":
     spectra=parameters["spectra"]
     ethernet=parameters["ethernet"]
 
-    chans=utils.get_channels_from_str(output_control["channels"], output_control["bits"])
-    spectra_per_packet=utils.get_nspec(chans, max_nbyte=packetiser["max_bytes_per_packet"])
-    bytes_per_spectrum=chans.shape[0]
+    pack_chans,real_chans=utils.get_channels_from_str(output_control["channels"], output_control["bits"])
+    spectra_per_packet=utils.get_nspec(pack_chans, max_nbyte=packetiser["max_bytes_per_packet"])
+    bytes_per_spectrum=pack_chans.shape[0]
     bytes_per_packet=spectra_per_packet*bytes_per_spectrum+4
     coeffs=utils.get_coeffs_from_str(output_control["channel_coeffs"])
 
@@ -168,7 +168,7 @@ if __name__=="__main__":
         logger.info("Initialising XCORR")
         albatros_snap.initialise_xcorr(xcorr["accumulation_length"])        
         logger.info("Initialising OUTPUT CONTROL")
-        albatros_snap.initialise_output_control(output_control["bits"], chans, coeffs)
+        albatros_snap.initialise_output_control(output_control["bits"], pack_chans, coeffs)
         logger.info("Initialising PACKETISER")
         albatros_snap.initialise_packetiser(spectra_per_packet, bytes_per_spectrum)
         logger.info("Initialising GbE")
