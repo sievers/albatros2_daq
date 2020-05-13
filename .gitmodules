@@ -1,0 +1,6 @@
+[submodule "scio"]
+	path = scio
+	url = https://github.com/sievers/scio.git
+[submodule "python-ds3231"]
+	path = python-ds3231
+	url = https://github.com/nivekg/python-ds3231.git
