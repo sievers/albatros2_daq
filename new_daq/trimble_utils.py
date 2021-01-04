@@ -79,8 +79,8 @@ def set_clock_trimble(id=171,baud=9600,port='/dev/ttyUSB0'):
     return True
     #return mytime
 
-def get_gps_time_trimble(id=171,baud=9600,port='/dev/ttyUSB0'):
-    report=get_report_trimble(id,baud,port)
+def get_gps_time_trimble(id=171,baud=9600,port='/dev/ttyUSB0',maxtime=4,maxiter=5):
+    report=get_report_trimble(id,baud,port,maxtime,maxiter)
     if report is None:
         print 'unable to read trimble in get_gps_time_trimble'
         return None
@@ -89,8 +89,8 @@ def get_gps_time_trimble(id=171,baud=9600,port='/dev/ttyUSB0'):
     gps_time['seconds']=report[2]
     return gps_time
 
-def get_latlon_trimble(id=172,baud=9600,port='/dev/ttyUSB0'):
-    report=get_report_trimble(id,baud,port)
+def get_latlon_trimble(id=172,baud=9600,port='/dev/ttyUSB0',maxtime=4,maxiter=5):
+    report=get_report_trimble(id,baud,port,maxtime,maxiter)
     if report is None:
         print 'unable to read trimble in get_latlon_trimble.'
         return None
@@ -99,3 +99,8 @@ def get_latlon_trimble(id=172,baud=9600,port='/dev/ttyUSB0'):
     latlon['lon']=report[18]*180/math.pi
     latlon['elev']=report[19]
     return latlon
+
+def convert_gps_to_sys(gps_time):
+    gps_to_sys = (datetime.datetime(year=1980,month=1,day=6) - datetime.datetime(year=1970,month=1,day=1)).total_seconds()
+    sys_time = gps_time["week"]*7*24*3600 + gps_time["seconds"] + gps_to_sys
+    return sys_time

@@ -15,7 +15,7 @@ import subprocess
 def write_header(file_object, chans, spec_per_packet, bytes_per_packet, bits):
     header_bytes=8*10+8*len(chans)
     have_trimble=False
-    gps_time=trimble_utils.get_gps_time_trimble()
+    gps_time=trimble_utils.get_gps_time_trimble(maxtime=2, maxiter=1)
     if gps_time is None:
         logger.info("File timestamp coming for RPi Clock. This is unrealiable")
         gps_time_rpi=albatros_daq_utils.gps_time_from_rtc()
@@ -24,14 +24,14 @@ def write_header(file_object, chans, spec_per_packet, bytes_per_packet, bits):
         gps_time['week']=gps_time_rpi["week"]
         gps_time['seconds']=gps_time_rpi["seconds"]
     else:
-        print 'ps time is now ',gps_time['week'],gps_time['seconds']
+        print 'gps time is now ',gps_time['week'],gps_time['seconds']
         have_trimble=True
     file_header=numpy.asarray([header_bytes, bytes_per_packet, len(chans), spec_per_packet, bits, have_trimble], dtype='>Q')
     file_header.tofile(file_object)
     numpy.asarray(chans, dtype=">Q").tofile(file_object)
     gps_time=numpy.asarray([gps_time['week'],gps_time['seconds']],dtype='>Q')
     gps_time.tofile(file_object)
-    latlon=trimble_utils.get_latlon_trimble()
+    latlon=trimble_utils.get_latlon_trimble(maxtime=2, maxiter=1)
     if latlon is None:
         logger.info("Can't speak to trimble, so no position information")
         latlon={}
@@ -105,7 +105,7 @@ if __name__=="__main__":
     packet=bytearray(bytes_per_packet)
     num_of_packets_per_file=int(math.floor(file_size*1.0e9/bytes_per_packet))
     
-    drives=albatros_daq_utils.list_drives_to_write_too()
+    drives=albatros_daq_utils.list_drives_to_write_too("MARS")
     logger.info("Found these drive/s")
     logger.info("%-17s %-17s %-17s %-17s %-5s%% %-s"%("Device", "Total", "Used", "Free", "Use ", "Mount"))
     for drive in drives:

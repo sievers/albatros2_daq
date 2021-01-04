@@ -163,7 +163,7 @@ def num_files_can_write(drive_path, safety, file_size):
     used_bytes=st.f_blocks*st.f_bsize-st.f_bfree*st.f_bsize
     free_bytes=st.f_bsize*st.f_bavail
     total=used_bytes+free_bytes
-    nfile_targ=int(math.floor(((safety/100.)*total-used_bytes)/(1.024e9*file_size)))
+    nfile_targ=int(math.floor((safety/100.*total-used_bytes)/(1.024e9*file_size)))
     return nfile_targ
     
 def find_mac():    
