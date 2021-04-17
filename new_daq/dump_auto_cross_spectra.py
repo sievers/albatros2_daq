@@ -49,6 +49,9 @@ if __name__=="__main__":
         parser.add_argument("-d","--dir", type=str, default='albatros_baseband',help="Set output directory to this.")
         parser.add_argument("-D","--drive", type=str, default='',help="Force output drive to this (otherwise use drive with most empty space)")
         args=parser.parse_args()
+
+	use_trimble = True
+
         try:
 		ip_port=args.ip.split(":")
 		snap=casperfpga.CasperFpga(host=ip_port[0], port=ip_port[1], transport=casperfpga.KatcpTransport)
@@ -61,30 +64,15 @@ if __name__=="__main__":
 		pols=args.pol.split(" ")
 		print(pols)
 		regs=["sync_cnt", "pfb_fft_of", "acc_cnt", "sys_clkcounter"]
-                if trimble_utils.get_report_trimble() is None:
-                        have_trimble=False
-                else:
-                        have_trimble=True
-                if have_trimble:
-                        print "Trimble GPS clock successfully detected."
-                else:
-                        print "Trimble GPS clock not found.  Timestamps will come from system clock."
-                                                        
+		if use_trimble:
+			if trimble_utils.get_report_trimble() is None:
+				print("Trying to use GPS clock but Trimble not detected.")
+			else:
+				print("Trimble GPS clock successfully detected.")
+		else:
+			print("Not using Trimble. Timestamps will come from system clock.")
 		while True:
-                        gps_time={}
-                        # Initialize to system time
                         start_time = time.time()
-                        # xxx FIX ALL OF THIS LATER
-                        # if have_trimble:
-                        #         gps_time=trimble_utils.get_gps_time_trimble()
-                        #         if gps_time is None:
-                        #                 gps_time={}
-                        #                 gps_time['week']=0
-                        #                 gps_time['seconds']=0
-                        #         else:
-                        #                 print 'gps time is now ',gps_time['week'], gps_time['seconds']
-                        #         # xxx FIX THIS LATER
-                        #         start_time = (gps_time["week"]*7*24*3600)+gps_time["seconds"]+315964800
 			if start_time>1e5:
 				time_frag = str(start_time)[:args.time_frag_length]
 			else:
@@ -95,8 +83,11 @@ if __name__=="__main__":
 			start_raw_files = {}
 			end_raw_files = {}
 			scio_files = {}
-			file_sys_timestamp1 = open("%s/time_gps_start.raw"%outsubdir, "w")
-			file_sys_timestamp2 = open("%s/time_gps_stop.raw"%outsubdir, "w")
+			if use_trimble:
+				file_gps_timestamp1 = open("%s/time_gps_start.raw"%outsubdir, "w")
+				file_gps_timestamp2 = open("%s/time_gps_stop.raw"%outsubdir, "w")
+			file_sys_timestamp1 = open("%s/time_sys_start.raw"%outsubdir, "w")
+			file_sys_timestamp2 = open("%s/time_sys_stop.raw"%outsubdir, "w")
 			file_fpga_temp = open("%s/fpga_temp.raw"%outsubdir, "w")
 			file_pi_temp = open("%s/pi_temp.raw"%outsubdir, "w")
 			for reg in regs:
@@ -111,13 +102,22 @@ if __name__=="__main__":
 					print(new_acc_cnt)
 					print(time.ctime())
 					acc_cnt = new_acc_cnt
+					if use_trimble:
+						start_gps_timestamp = trimble_utils.get_gps_timestamp_trimble(maxtime=2, maxiter=1)
 					start_sys_timestamp = time.time()
 					start_reg_data = read_registers(snap, regs)
 					pol_data = read_pols(snap, pols, ">2048q")
 					end_reg_data = read_registers(snap, regs)
 					end_sys_timestamp = time.time()
+					if use_trimble:
+						end_gps_timestamp = trimble_utils.get_gps_timestamp_trimble(maxtime=2, maxiter=1)
 					read_time = end_sys_timestamp-start_sys_timestamp
 					print("Read took: "+str(read_time))
+					if use_trimble:
+						if start_gps_timestamp is None:
+							start_gps_timestamp = 0
+						if end_gps_timestamp is None:
+							end_gps_timestamp = 0
 					if start_reg_data["acc_cnt"] != end_reg_data["acc_cnt"]:
 						print("Accumulation length changed during read")
 					for reg in regs:
@@ -131,6 +131,11 @@ if __name__=="__main__":
 					numpy.array(get_fpga_temperature(snap)).tofile(file_fpga_temp)
 					numpy.array(get_rpi_temperature()).tofile(file_pi_temp)
 					numpy.array(end_sys_timestamp).tofile(file_sys_timestamp2)
+					if use_trimble:
+						numpy.array(start_gps_timestamp, dtype=numpy.utin32).tofile(file_gps_timestamp1)
+						numpy.array(end_gps_timestamp, dtype=numpy.uint32).tofile(file_gps_timestamp2)
+						file_gps_timestamp1.flush()
+						file_gps_timestamp2.flush()
 					file_sys_timestamp1.flush()
 					file_fpga_temp.flush()
 					file_pi_temp.flush()
@@ -144,5 +149,8 @@ if __name__=="__main__":
 			file_fpga_temp.close()
 			file_pi_temp.close()
 			file_sys_timestamp2.close()
+			if use_trimble:
+				file_gps_timestamp1.close()
+				file_gps_timestamp2.close()
 	finally:
 		print("Terminating DAQ at %s"%datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S"))

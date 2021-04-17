@@ -1,5 +1,6 @@
 import time, datetime, subprocess, threading, argparse, ConfigParser
 import numpy as nm
+import os
 
 #===========================================================
 def run_script_subp(cmdstring,retvals=None,runtime=None,attempts=1,success=0):

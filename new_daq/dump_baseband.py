@@ -13,25 +13,20 @@ import numpy
 import subprocess
 
 def write_header(file_object, chans, spec_per_packet, bytes_per_packet, bits):
-    header_bytes=8*10+8*len(chans)
-    have_trimble=False
-    gps_time=trimble_utils.get_gps_time_trimble()
+    have_trimble = True
+    header_bytes = 8*10 + 8*len(chans) # 8 bytes per element in the header
+    gps_time = trimble_utils.get_gps_timestamp_trimble(maxtime=2, maxiter=1)
     if gps_time is None:
-        logger.info("File timestamp coming for RPi Clock. This is unrealiable")
-        gps_time_rpi=albatros_daq_utils.gps_time_from_rtc()
-        print(gps_time_rpi)
-        gps_time={}
-        gps_time['week']=gps_time_rpi["week"]
-        gps_time['seconds']=gps_time_rpi["seconds"]
-    else:
-        print 'ps time is now ',gps_time['week'],gps_time['seconds']
-        have_trimble=True
+	logger.info('File timestamp coming from RPi clock. This is unreliable.')
+        have_trimble = False
+        gps_time = time.time()
+    print('GPS time is now ', gps_time)
     file_header=numpy.asarray([header_bytes, bytes_per_packet, len(chans), spec_per_packet, bits, have_trimble], dtype='>Q')
     file_header.tofile(file_object)
     numpy.asarray(chans, dtype=">Q").tofile(file_object)
-    gps_time=numpy.asarray([gps_time['week'],gps_time['seconds']],dtype='>Q')
+    gps_time=numpy.asarray([0, gps_time], dtype='>Q') # setting gps_week = 0 to flag the new header format with GPS ctime timestamp
     gps_time.tofile(file_object)
-    latlon=trimble_utils.get_latlon_trimble()
+    latlon=trimble_utils.get_latlon_trimble(maxtime=2, maxiter=1)
     if latlon is None:
         logger.info("Can't speak to trimble, so no position information")
         latlon={}
@@ -105,7 +100,7 @@ if __name__=="__main__":
     packet=bytearray(bytes_per_packet)
     num_of_packets_per_file=int(math.floor(file_size*1.0e9/bytes_per_packet))
     
-    drives=albatros_daq_utils.list_drives_to_write_too()
+    drives=albatros_daq_utils.list_drives_to_write_too("MARS")
     logger.info("Found these drive/s")
     logger.info("%-17s %-17s %-17s %-17s %-5s%% %-s"%("Device", "Total", "Used", "Free", "Use ", "Mount"))
     for drive in drives:
@@ -117,9 +112,11 @@ if __name__=="__main__":
     while not drives_full:
         if len(drives)==0:
             logger.info("No drives found. Check if drives are connected and mounted")
-        else:
+	    print("NO DRIVES FOUND! NOT SAVING BASEBAND!")
+    	else:
             for drive in drives:
                 drive_path=drive["Mounted on"]
+		#drive_path='/home/pi/baseband'
                 number_of_files=albatros_daq_utils.num_files_can_write(drive_path, drive_safety, file_size)
                 if number_of_files>0:
                     write_path=drive_path+"/"+dump_baseband_directory_name
