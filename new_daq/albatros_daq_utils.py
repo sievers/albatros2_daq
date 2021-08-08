@@ -31,7 +31,12 @@ def get_coeffs_from_str(coeffs):
     new_coeffs=np.zeros(2048)
     for single_coeff in multi_coeff:
         start_stop_coeff=map(int, single_coeff.split(":"))
-        new_coeffs[np.arange(start_stop_coeff[0], start_stop_coeff[1])]=start_stop_coeff[2]
+        if start_stop_coeff[2]>=0:
+            val=start_stop_coeff[2]
+        else:
+            val=2**(-start_stop_coeff[2])
+        #new_coeffs[np.arange(start_stop_coeff[0], start_stop_coeff[1])]=start_stop_coeff[2]
+        new_coeffs[np.arange(start_stop_coeff[0], start_stop_coeff[1])]=val
     new_coeffs=np.asarray(new_coeffs, dtype=">I")
     return new_coeffs
 

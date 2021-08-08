@@ -7,7 +7,9 @@ import datetime
 import albatrosdigitizer
 import albatros_daq_utils
 import numpy
-import trimble_utils
+#import trimble_utils
+import lbtools_l
+
 
 if __name__=="__main__":
     parser=argparse.ArgumentParser(description="Script to initialise SNAP Board")
@@ -29,11 +31,19 @@ if __name__=="__main__":
     file_logger.setLevel(logging.INFO)
     logger.addHandler(file_logger)
 
-    if trimble_utils.set_clock_trimble():
-        logger.info("Trimble GPS clock successfully detected.")
-        logger.info("Successfully updated system clock to gps time from trimble.")
+    hostname=os.uname()[1]
+    logger.info("hostname is "+repr(hostname))
+    if lbtools_l.set_clock_lb():
+        logger.info("LB GPS clock successfully detected.")
+        logger.info("Successfully updated system clock to gps time from LB.")
     else:
-        logger.info("Unable to read time from trimble. Using RPi system clock which is unrealiable")
+        logger.info("Unable to read time from LB. Using RPi system clock which is unrealiable")    	
+
+#    if trimble_utils.set_clock_trimble():
+#        logger.info("Trimble GPS clock successfully detected.")
+#        logger.info("Successfully updated system clock to gps time from trimble.")
+#    else:
+#        logger.info("Unable to read time from trimble. Using RPi system clock which is unrealiable")
 
     logger.info("########################################################################################")
     snap_ip=config_file.get("albatros2", "snap_ip")
@@ -48,6 +58,7 @@ if __name__=="__main__":
     logger.info("# (5) Accumulation length: %d"%(acclen))
     bits=int(config_file.get("albatros2", "bits"))
     logger.info("# (6) Baseband bits: %d"%(bits))
+    adc_max_retries=int(config_file.get("albatros2","adc_max_retries"))
     max_bytes_per_packet=int(config_file.get("albatros2", "max_bytes_per_packet"))
     logger.info("# (7) Max bytes per packet: %d"%(max_bytes_per_packet))
     dest_ip=config_file.get("albatros2", "destination_ip")
@@ -79,13 +90,16 @@ if __name__=="__main__":
         
     try:
         chans=albatros_daq_utils.get_channels_from_str(channels, bits)
+        print('chans are ',chans.shape,chans)
         spec_per_packet=albatros_daq_utils.get_nspec(chans, max_nbyte=max_bytes_per_packet)
         bytes_per_spectrum=chans.shape[0]
         coeffs=albatros_daq_utils.get_coeffs_from_str(channels_coeffs)
+        print('coeffs are ',coeffs.shape,coeffs.max(),coeffs.min(),coeffs)
+        print('ports are ',snap_ip,snap_port)
         albatros_snap=albatrosdigitizer.AlbatrosDigitizer(snap_ip, snap_port, logger=logger)
     	albatros_snap.initialise(fpg_file, ref_clock, fftshift, acclen, bits,
                                  spec_per_packet, bytes_per_spectrum, dest_ip,
-                                 dest_port, dest_mac, adc_digital_gain)
+                                 dest_port, dest_mac, adc_digital_gain,adc_tries=adc_max_retries)
         adc_stats=albatros_snap.get_adc_stats()
         logger.info("ADC bits used: (adc0, %.2f) (adc3, %.2f)"%(adc_stats["adc0"]["bits_used"], adc_stats["adc3"]["bits_used"]))
         albatros_snap.set_channel_order(chans, bits)

@@ -9,8 +9,8 @@ import struct
 import albatrosdigitizer
 import time
 import numpy
-import trimble_utils
-import datetime
+#import trimble_utils
+import lbtools_l
 
 def get_rpi_temperature():
     x = open("/sys/class/thermal/thermal_zone0/temp", "r")
@@ -65,12 +65,22 @@ if __name__=="__main__":
         pols=pols.split()
         registers=registers.split()
 	if use_trimble:
-		if trimble_utils.get_report_trimble() is None:
-                	print("Trying to use GPS clock but Trimble not detected.")
+		lbread = lbtools_l.lb_read()
+		tstamp =lbread[0]
+		if tstamp is None:
+                	print("Trying to use GPS clock but unable to read from LB.")
 		else:
-			print("Trimble GPS clock successfully detected.")
+			print("LB GPS clock successfully read.")
 	else:
-                print("Not using Trimble GPS clock. Timestamps will come from system clock.")
+                print("Not using LB GPS clock. Timestamps will come from system clock.")		
+		
+#		if trimble_utils.get_report_trimble() is None:
+#                	print("Trying to use GPS clock but Trimble not detected.")
+#		else:
+#			print("Trimble GPS clock successfully detected.")
+#	else:
+#                print("Not using Trimble GPS clock. Timestamps will come from system clock.")
+
         # Shift between GPS and Linux system zero times
         # gps_to_sys = (datetime.datetime(year=1980,month=1,day=6) - datetime.datetime(year=1970,month=1,day=1)).total_seconds()
         while True:
@@ -106,7 +116,9 @@ if __name__=="__main__":
 		    acc_cnt = new_acc_cnt
                     if use_trimble:
 #			start_gps_time = trimble_utils.get_gps_time_trimble(maxtime=2,maxiter=1)
-			start_gps_timestamp = trimble_utils.get_gps_timestamp_trimble(maxtime=2,maxiter=1)
+#			start_gps_timestamp = trimble_utils.get_gps_timestamp_trimble(maxtime=2,maxiter=1)
+			startread = lbtools_l.lb_read()
+			start_gps_timestamp = startread[0]
 		    start_sys_timestamp = time.time()
 		    start_reg_data = digitizer.read_registers(registers)
 		    pol_data = digitizer.read_pols(pols, ">2048q")
@@ -114,7 +126,10 @@ if __name__=="__main__":
                     end_sys_timestamp = time.time()
                     if use_trimble:
 #			end_gps_time = trimble_utils.get_gps_time_trimble(maxtime=2,maxiter=1)
-			end_gps_timestamp = trimble_utils.get_gps_timestamp_trimble(maxtime=2,maxiter=1)
+#			end_gps_timestamp = trimble_utils.get_gps_timestamp_trimble(maxtime=2,maxiter=1)
+			endread = lbtools_l.lb_read()
+			end_gps_timestamp = endread[0]
+
 		    read_time = end_sys_timestamp-start_sys_timestamp
 		    print("Read took: "+str(read_time))
                     if use_trimble:

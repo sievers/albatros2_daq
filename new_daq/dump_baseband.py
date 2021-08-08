@@ -11,11 +11,36 @@ import math
 import trimble_utils
 import numpy
 import subprocess
+import lbtools_l
+import albatrosdigitizer
+
+
+def unpack_4bit(buf):
+    raw=numpy.frombuffer(buf,'int8')
+    #print('raw[:4]=',raw[:4])
+    re=numpy.asarray(numpy.right_shift(numpy.bitwise_and(raw, 0xf0), 4), dtype="int8")
+    re[re>8]=re[re>8]-16
+    im=numpy.asarray(numpy.bitwise_and(raw, 0x0f), dtype="int8")
+    im[im>8]=im[im>8]-16
+    #print('extrema are ',re.max(),re.min(),im.max(),im.min())
+    vec=1J*im+re    
+    #print('inside unpack, answers are ',re[0],im[0],vec.dtype)
+    return vec
+def unpack_packet(packet,bits,spec_per_packet):
+    specno=numpy.frombuffer(packet,'>I',1)
+    if bits==4:
+        vec=unpack_4bit(packet[4:])
+        nchan=len(vec)//spec_per_packet//2
+        pol0=numpy.reshape(vec[::2],[spec_per_packet,nchan])
+        pol1=numpy.reshape(vec[1::2],[spec_per_packet,nchan])
+        return pol0,pol1
 
 def write_header(file_object, chans, spec_per_packet, bytes_per_packet, bits):
     have_trimble = True
     header_bytes = 8*10 + 8*len(chans) # 8 bytes per element in the header
-    gps_time = trimble_utils.get_gps_timestamp_trimble(maxtime=2, maxiter=1)
+    gpsread = lbtools_l.lb_read()
+    gps_time = gpsread[0]
+#    gps_time = trimble_utils.get_gps_timestamp_trimble(maxtime=2, maxiter=1)
     if gps_time is None:
 	logger.info('File timestamp coming from RPi clock. This is unreliable.')
         have_trimble = False
@@ -26,15 +51,30 @@ def write_header(file_object, chans, spec_per_packet, bytes_per_packet, bits):
     numpy.asarray(chans, dtype=">Q").tofile(file_object)
     gps_time=numpy.asarray([0, gps_time], dtype='>Q') # setting gps_week = 0 to flag the new header format with GPS ctime timestamp
     gps_time.tofile(file_object)
-    latlon=trimble_utils.get_latlon_trimble(maxtime=2, maxiter=1)
-    if latlon is None:
-        logger.info("Can't speak to trimble, so no position information")
+    lat_lon = gpsread[1]
+#    latlon=trimble_utils.get_latlon_trimble(maxtime=2, maxiter=1)
+    if lat_lon is None:
+        logger.info("Can't speak to LB, so no position information")
         latlon={}
         latlon['lat']=0
         latlon['lon']=0
         latlon['elev']=0
     else:
-        print 'lat/lon/elev are ',latlon['lat'],latlon['lon'],latlon['elev']
+        latlon={}
+        latlon['lat']=lat_lon[3]
+        latlon['lon']=lat_lon[2]
+        latlon['elev']=lat_lon[4]
+        print 'lat/lon/elev are ',latlon['lat'],latlon['lon'],latlon['elev']    
+
+#    if latlon is None:
+#        logger.info("Can't speak to trimble, so no position information")
+#        latlon={}
+#        latlon['lat']=0
+#        latlon['lon']=0
+#        latlon['elev']=0
+#    else:
+#        print 'lat/lon/elev are ',latlon['lat'],latlon['lon'],latlon['elev']
+        
     latlon=numpy.asarray([latlon['lat'],latlon['lon'],latlon['elev']],dtype='>d')
     latlon.tofile(file_object)
     return None
@@ -68,8 +108,18 @@ if __name__=="__main__":
     logger.info("# (1) Destination ip: %s"%(dest_ip))
     dest_port=config_file.getint("albatros2", "destination_port")
     logger.info("# (2) Destination port: %d"%(dest_port))
+    snap_ip=config_file.get("albatros2","snap_ip")
+    snap_port=config_file.get("albatros2","snap_port")
     channels=config_file.get("albatros2", "channels")
     logger.info("# (3) Channels: %s"%(channels))
+    channel_coeffs=config_file.get("albatros2", "channel_coeffs")
+    logger.info("# (3b) Channel coeffs: %s"%(channel_coeffs))
+    try:
+        autotune=config_file.get("albatros2","autotune")
+    except:
+        autotune='0'
+    autotune=int(autotune)
+    logger.info("# (3c) Autotune is %d"%(autotune))
     bits=config_file.getint("albatros2", "bits")
     logger.info("# (4) Baseband bits: %d"%(bits))
     max_bytes_per_packet=config_file.getint("albatros2", "max_bytes_per_packet")
@@ -99,7 +149,64 @@ if __name__=="__main__":
     bytes_per_packet=bytes_per_spectrum*spec_per_packet+4 #the 4 extra bytes is for the spectrum number
     packet=bytearray(bytes_per_packet)
     num_of_packets_per_file=int(math.floor(file_size*1.0e9/bytes_per_packet))
-    
+
+
+    if (autotune) and (bits==4):
+        logger.info("auto-tuning baseband coefficients")
+        print("Going to tune channel levels")
+        #print("chans is ",chans)
+        #print("expected size is ",spec_per_packet,bytes_per_spectrum,bytes_per_packet,bits)
+        #print('ports are ',snap_ip,snap_port)
+        albatros_snap=albatrosdigitizer.AlbatrosDigitizer(snap_ip, snap_port, logger=logger)
+        packets_to_average=3000//spec_per_packet
+        #packets_to_average=50
+        print('going to average ',packets_to_average,' packets')
+        pol0=[None]*packets_to_average
+        pol1=[None]*packets_to_average
+        isok=False
+        npass=20
+        ipass=0
+        coeffs=albatros_daq_utils.get_coeffs_from_str(channel_coeffs)
+        #print('starting coeffs types is ',coeffs.dtype)
+        #set the levels to the currently specified ones, as otherwise this script may be
+        #adjusting levels thinking the levels are set to the file when they could be
+        #something else based on previous runs.
+        albatros_snap.set_channel_coeffs(coeffs, bits)
+
+        while isok==False:
+            for i in range(packets_to_average):
+                sock.recvfrom_into(packet, bytes_per_packet)
+                #ii=numpy.frombuffer(packet,'>I',1)
+                pol0[i],pol1[i]=unpack_packet(packet,bits,spec_per_packet)
+                #print('first entry is ',ii,tmp[0])
+                #print('stds are ',numpy.std(pol0),numpy.std(pol1))
+            pp0=numpy.vstack(pol0)
+            pp1=numpy.vstack(pol1)
+            #print('shapes are ',pol0.shape,pol1.shape)
+            #print('stds are ',numpy.std(pp0,axis=0),numpy.std(pp1,axis=0))
+            railed=[numpy.mean(numpy.abs(numpy.real(pp0))==7),numpy.mean(numpy.abs(numpy.real(pp1))==7)]
+            max_std=numpy.max([numpy.max(numpy.std(pp0,axis=0)),numpy.max(numpy.std(pp1,axis=0))])
+            #print('max_std is ',max_std,bits,railed)
+            #print('coeffs max is ',coeffs.max(),coeffs.dtype)
+            if max_std>7:
+                print('shrinking coeffs')
+                coeffs=coeffs//2
+                coeffs=numpy.asarray(coeffs,dtype=">I")
+                albatros_snap.set_channel_coeffs(coeffs, bits)
+            elif max_std<3.5:
+                print('increasing coeffs')
+                coeffs=coeffs*2
+                coeffs=numpy.asarray(coeffs,dtype=">I")
+                albatros_snap.set_channel_coeffs(coeffs, bits)
+            else:
+                print('max_std is ',max_std,' with ',railed,' railed fraction')
+                logger.info("Tuned levels with coefficient %d, max std %.3f, and railed percents %.2f %.2f"%(coeffs.max(),max_std,railed[0]*100,railed[1]*100))
+                isok=True
+            ipass=ipass+1
+            if ipass==npass:
+                print('failed to converge after ',npass,' tuning steps')
+                isok=True
+
     drives=albatros_daq_utils.list_drives_to_write_too("MARS")
     logger.info("Found these drive/s")
     logger.info("%-17s %-17s %-17s %-17s %-5s%% %-s"%("Device", "Total", "Used", "Free", "Use ", "Mount"))
@@ -116,7 +223,6 @@ if __name__=="__main__":
     	else:
             for drive in drives:
                 drive_path=drive["Mounted on"]
-		#drive_path='/home/pi/baseband'
                 number_of_files=albatros_daq_utils.num_files_can_write(drive_path, drive_safety, file_size)
                 if number_of_files>0:
                     write_path=drive_path+"/"+dump_baseband_directory_name

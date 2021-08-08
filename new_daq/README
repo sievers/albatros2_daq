@@ -1,0 +1,77 @@
+./10-local.rules
+----------------
+To use the Leo Bodnar, need to drop the 10-local.rules file into
+/etc/udev/rules.d/ and then either restart the Pi or reinitialize the
+rules with:
+  sudo udevadm control --reload
+  sudo udevadm trigger
+and then the read/write permissions of the LB will be set.
+
+./albatros_daq_utils.py
+-----------------------
+ALBATROS DAQ tools
+
+./albatrosdigitizer.py
+----------------------
+ALBATROS digitizer tools
+
+./baseband_autorun.py
+---------------------
+Wrapper script for calling dump_baseband.py and automatically cycling
+through different parameters.
+
+./calibrate_snap.py
+-------------------
+No clue what this script is.
+
+./check_lb.py
+-------------
+Presumably this code checks the Leo Bodnar.  I don't know, I didn't
+write it, and I haven't used it.
+
+./check_trimble.py
+------------------
+Presumably this code checks the Trimble.  I don't know, I didn't write
+it, and I haven't used it.
+
+./config_fpga.py
+----------------
+Configure the ADCs and FPGA.  There's a new option to specify the
+coefficient (for 2- or 4-bit baseband) as either the full number or
+log2.  If the latter, prefix the coefficient with a minus sign.
+
+./dump_auto_cross_spectra.py
+----------------------------
+Deprecated version of dump_spectra.py -- do not use.  We should
+probably delete this from the repo at some point.
+
+./dump_baseband.py
+------------------
+Record baseband with optional autotuning for 4-bit (not implemented
+for 2-bit yet).  This script is currently wired to work with the Leo
+Bodnar, and the Trimble lines are commented out.
+
+./dump_spectra.py
+-----------------
+Record directly computed auto- and cross-spectra.  This script is
+currently wired to work with the Leo Bodnar, and the Trimble lines are
+commented out.
+
+./getbits.py
+------------
+Convenience script for reporting current # of bits used by the ADC
+
+./lbtools_l.py
+--------------
+Tools for reading time and GPS coords from Leo Bodnar
+
+./live_spectra_noconfig.py
+--------------------------
+Barebones live spectrum plotter, also reports FPGA and RPi temperature
+
+./save_adc_snapshot.py
+----------------------
+
+./trimble_utils.py
+------------------
+Tools for reading time and GPS coords from Trimble
