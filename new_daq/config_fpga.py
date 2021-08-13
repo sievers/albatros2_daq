@@ -37,7 +37,7 @@ if __name__=="__main__":
         logger.info("LB GPS clock successfully detected.")
         logger.info("Successfully updated system clock to gps time from LB.")
     else:
-        logger.info("Unable to read time from LB. Using RPi system clock which is unrealiable")    	
+        logger.info("Unable to read time from LB. Using RPi system clock which is unrealiable")
 
 #    if trimble_utils.set_clock_trimble():
 #        logger.info("Trimble GPS clock successfully detected.")
@@ -81,13 +81,15 @@ if __name__=="__main__":
     channels_coeffs=config_file.get("albatros2", "channel_coeffs")
     logger.info("# (14) Channel coeffs: %s"%(channels_coeffs))
     logger.info("# (15) Log directory: %s"%(log_dir))
+    snap_cooldowntime=config_file.getfloat("albatros2", "snap_cooldowntime")
+    logger.info("# (16) SNAP cooldown time: {}".format(snap_cooldowntime))
     logger.info("########################################################################################")
     # drives_full=config_file.get("albatros2", "drives_full")
     # if drives_full=="true":
     #    logger.info("All drives are full. Holding here!!!")
     #     while True:
     #         pass
-        
+
     try:
         chans=albatros_daq_utils.get_channels_from_str(channels, bits)
         print('chans are ',chans.shape,chans)
@@ -99,7 +101,7 @@ if __name__=="__main__":
         albatros_snap=albatrosdigitizer.AlbatrosDigitizer(snap_ip, snap_port, logger=logger)
     	albatros_snap.initialise(fpg_file, ref_clock, fftshift, acclen, bits,
                                  spec_per_packet, bytes_per_spectrum, dest_ip,
-                                 dest_port, dest_mac, adc_digital_gain,adc_tries=adc_max_retries)
+                                 dest_port, dest_mac, adc_digital_gain, adc_tries=adc_max_retries, cooldowntime=snap_cooldowntime)
         adc_stats=albatros_snap.get_adc_stats()
         logger.info("ADC bits used: (adc0, %.2f) (adc3, %.2f)"%(adc_stats["adc0"]["bits_used"], adc_stats["adc3"]["bits_used"]))
         albatros_snap.set_channel_order(chans, bits)
