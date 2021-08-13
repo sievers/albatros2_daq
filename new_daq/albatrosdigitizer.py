@@ -59,7 +59,7 @@ class AlbatrosDigitizer:
                 break
             elif i<adc_tries-1:
                 self.logger.error("ADC initialisation failed. Retrying!!!")
-		    else:
+            else:
                 self.logger.critical("ADC initialisation failed after "+str(adc_tries)+" tries. Exiting!!!")
                 exit(1)
         self.logger.info("FPGA clock: %f"%self.fpga.estimate_fpga_clock())
