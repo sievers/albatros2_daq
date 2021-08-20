@@ -84,6 +84,10 @@ Barebones live spectrum plotter, also reports FPGA and RPi temperature
 ---------------------
 Script for mounting the next mux'd drive
 
+./muxtools.py
+-------------
+Tools for handling the mux box
+
 ./rc.local
 ----------
 Example rc.local file for executing run_daq_supervised.py
