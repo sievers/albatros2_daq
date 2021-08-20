@@ -5,7 +5,7 @@ import os
 import subprocess
 
 def run_script(cmd,attempts=1,success=0):
-    return 0,0
+    #return 0,0  #useful for testing
     for iter in range(attempts):
         retval=os.system(cmd)
         #retval=success
