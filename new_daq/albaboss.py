@@ -66,7 +66,7 @@ if __name__=='__main__':
         if args.sleep>0:
             time.sleep(args.sleep)
 
-    assert(1==0)
+
     xx=set()
     retvals={}
     for cmd in args.commands:  #loop over commands, and start a thread for each that will spawn subprocesses
