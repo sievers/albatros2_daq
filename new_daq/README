@@ -98,7 +98,9 @@ automatically upon boot.  Copy the relevant lines into /etc/rc.local
 -----------------------
 Top-level wrapper script for running supervised DAQ processes, just
 looks for existing instances of supervisord/DAQ and calls "supervisord
--c <file.config>" if nothing is running already.
+-c <file.config>" if nothing is running already.  To run this script,
+you need an environment variable "DAQDIR" set to the location of the
+DAQ, so make sure this is set in .bashrc.
 
 ./save_adc_snapshot.py
 ----------------------
@@ -106,12 +108,16 @@ Not sure who wrote this script or if it's still used?
 
 ./supertools.py
 ---------------
-Various tools for handling mux'd hard drives and supervisord.
+Various tools for handling mux'd hard drives and supervisord.  To run
+this script, you need an environment variable "DAQDIR" set to the
+location of the DAQ, so make sure this is set in .bashrc.
 
 ./supervisord_albaboss.conf
 ---------------------------
-Supervisord configuration files.  These contain the actual DAQ
-commands that are called and then subsequently managed by supervisord.
+Supervisord configuration file.  These contain the actual DAQ commands
+that are called and then subsequently managed by supervisord.  To run
+this script, you need an environment variable "DAQDIR" set to the
+location of the DAQ, so make sure this is set in .bashrc.
 
 ./trimble_utils.py
 ------------------
