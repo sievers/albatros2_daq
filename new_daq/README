@@ -7,6 +7,11 @@ rules with:
   sudo udevadm trigger
 and then the read/write permissions of the LB will be set.
 
+./albaboss.py
+-------------
+Boss script that calls specified initialization scripts, followed by
+other scripts to be run in parallel.
+
 ./albatros_daq_utils.py
 -----------------------
 ALBATROS DAQ tools
@@ -61,6 +66,12 @@ commented out.
 ------------
 Convenience script for reporting current # of bits used by the ADC
 
+./kill_daq_supervised.py
+------------------------
+General script for killing all instances of supervisord and ALBATROS
+DAQ in case there are stray processes.  Use this script to ensure
+complete process termination.
+
 ./lbtools_l.py
 --------------
 Tools for reading time and GPS coords from Leo Bodnar
@@ -69,8 +80,34 @@ Tools for reading time and GPS coords from Leo Bodnar
 --------------------------
 Barebones live spectrum plotter, also reports FPGA and RPi temperature
 
+./mount_next_drive.py
+---------------------
+Script for mounting the next mux'd drive
+
+./rc.local
+----------
+Example rc.local file for executing run_daq_supervised.py
+automatically upon boot.  Copy the relevant lines into /etc/rc.local
+(and ensure that the file ends with the exit(0) statement).
+
+./run_daq_supervised.py
+-----------------------
+Top-level wrapper script for running supervised DAQ processes, just
+looks for existing instances of supervisord/DAQ and calls "supervisord
+-c <file.config>" if nothing is running already.
+
 ./save_adc_snapshot.py
 ----------------------
+Not sure who wrote this script or if it's still used?
+
+./supertools.py
+---------------
+Various tools for handling mux'd hard drives and supervisord.
+
+./supervisord_albaboss.conf
+---------------------------
+Supervisord configuration files.  These contain the actual DAQ
+commands that are called and then subsequently managed by supervisord.
 
 ./trimble_utils.py
 ------------------

@@ -21,9 +21,9 @@ fi
 sleep 2m
 
 # Set the time
-python /home/pi/daq_2018/set_gpstime.py
+# python /home/pi/daq_2018/set_gpstime.py
 
-# Automagically start PRIZM DAQ
-/home/pi/daq_2018/supervisord/run_daq_supervised.py &
+# Automagically start ALBATROS DAQ
+/home/pi/albatros2_daq/new_daq/run_daq_supervised.py &
 
 exit 0
