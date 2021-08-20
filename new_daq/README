@@ -62,6 +62,10 @@ Record directly computed auto- and cross-spectra.  This script is
 currently wired to work with the Leo Bodnar, and the Trimble lines are
 commented out.
 
+./efoyserial.py
+---------------
+Read EFOY state over serial connection and save to a log file.
+
 ./getbits.py
 ------------
 Convenience script for reporting current # of bits used by the ADC
