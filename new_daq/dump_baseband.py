@@ -13,6 +13,7 @@ import numpy
 import subprocess
 import lbtools_l
 import albatrosdigitizer
+import supertools
 
 
 def unpack_4bit(buf):
@@ -133,6 +134,27 @@ if __name__=="__main__":
     dump_baseband_directory_name=config_file.get("albatros2", "dump_baseband_directory_name")
     logger.info("# (9) Baseband directory name: %s"%(dump_baseband_directory_name))
     logger.info("# (10) Log directory: %s"%(baseband_log_dir))
+    try:
+        reboot_when_full=config_file.get("albatros2","reboot_when_full")
+    except:
+        reboot_when_full='0'
+    reboot_when_full=int(reboot_when_full)
+    if reboot_when_full:
+        logger.info("# (11) Will reboot when first drive fills up.")
+    else:
+        logger.info("# (11) Will not reboot when first drive fills up.")
+    
+    try:
+        have_mux=config_file.get("albatros2","have_mux")
+    except:
+        have_mux='0'
+    have_mux=int(have_mux)
+    if have_mux:
+        logger.info("# (12) Expecting to be hooked up to mux box.")
+    else:
+        logger.info("# (12) Not expecting to be hooked up to mux box.")
+    
+
     logger.info("########################################################################################")
 
     sock=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -249,6 +271,18 @@ if __name__=="__main__":
                                 time_for_many_reads=time_after_many_reads
                                 num_of_reads=0
                         baseband_file.close()
+                else:
+                    logger.info("Drive " + repr(drive_path)+" full at start of run.")
+                    if have_mux:
+                        supertools.mark_drive_full()
+                number_of_files=albatros_daq_utils.num_files_can_write(drive_path, drive_safety, file_size)
+                if number_of_files<1:
+                    logger.info("Drive "+repr(drive_path)+" has been filled.")
+                    if have_mux:
+                        supertools.mark_drive_full()
+                    if reboot_when_full:
+                        os.system("sudo reboot")
+                    
             drives_full=True
         
     logger.info("All drives full. Not saving baseband. Pausing here!!!")
