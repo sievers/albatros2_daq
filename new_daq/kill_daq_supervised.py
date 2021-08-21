@@ -36,7 +36,7 @@ if __name__ == '__main__':
             killpid(pid)
     # If there are any DAQ copies floating around, kill those too
     print 'Searching for extraneous DAQ processes'
-    for daq in ['albaboss.py', 'albatros2_init.py', 'dump_auto_cross_spectra.py', 'dump_baseband.py']:
+    for daq in ['albaboss.py', 'config_fpga.py', 'dump_spectra.py', 'dump_baseband.py']:
         txt = subprocess.Popen(['pgrep','-f',daq], stdout=subprocess.PIPE).communicate()[0]
         lines = txt.split('\n')
         for line in lines:
