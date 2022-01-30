@@ -1,0 +1,19 @@
+logging:
+    level: 20
+    directory: /home/pi/data_auto_cross/logs/
+
+serial-processes:
+    process-1:
+        cmd: python /home/pi/albatros2_daq/new_daq/config_fpga.py -c /home/pi/albatros2_daq/new_daq/config.ini
+        retries: 3
+        sleep: 2
+
+parallel-processes:
+    process-1:
+        cmd: python /home/pi/albatros2_daq/new_daq/dump_baseband.py -c /home/pi/albatros2_daq/new_daq/config.ini
+        retries: 3
+        sleep: 0
+    process-2:
+        cmd: python /home/pi/albatros2_daq/new_daq/dump_spectra.py -c /home/pi/albatros2_daq/new_daq/config.ini
+        retries: 3
+        sleep: 0
